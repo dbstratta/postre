@@ -1,0 +1,17 @@
+# Dependencies
+node_modules
+
+# Artifacts
+dist
+
+# Testing
+coverage
+
+# Misc
+/keys
+.env
+*.pyc
+.DS_Store
+.idea
+*.sw*
+*.log*

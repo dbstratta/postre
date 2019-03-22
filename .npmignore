@@ -1,0 +1,10 @@
+*
+dist/**/*.test.*
+dist/jest.setup.d.ts
+
+!dist/**/*
+!src/**/*
+!package.json
+!README.md
+!LICENSE
+!CHANGELOG.md
