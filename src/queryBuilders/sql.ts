@@ -1,39 +1,47 @@
-import {
-  QueryFragments,
-  Query,
-  QueryValues,
-  InterpolationValue,
-  InterpolationValueKind,
-  InterpolationValues,
-} from './types';
+import { postreSymbol } from './constants';
 import { isQuery, replaceLastValue } from './helpers';
 
-export function sql(
-  queryFragments: QueryFragments,
-  ...interpolationValues: InterpolationValue[]
-): Query {
-  const fragments: QueryFragments = flattenQueryFragments(
-    queryFragments,
-    interpolationValues,
-  );
-  const values: QueryValues = flattenInterpolationValues(interpolationValues);
+export type InterpolationValue = QueryValue | QueryObject;
 
-  const query: Query = {
+export type QueryObject = {
+  kind: InterpolationValueKind.Query;
+  fragments: QueryFragment[];
+  values: QueryValue[];
+  [postreSymbol]: true;
+};
+
+export enum InterpolationValueKind {
+  Query = 'query',
+}
+
+export type QueryFragment = string;
+
+export type QueryValue = number | string | boolean | null;
+
+export function sql(
+  queryFragments: ReadonlyArray<QueryFragment>,
+  ...interpolationValues: InterpolationValue[]
+): QueryObject {
+  const fragments = flattenQueryFragments(queryFragments, interpolationValues);
+  const values = flattenInterpolationValues(interpolationValues);
+
+  const queryObject: QueryObject = {
     kind: InterpolationValueKind.Query,
     fragments,
     values,
+    [postreSymbol]: true,
   };
 
-  return query;
+  return queryObject;
 }
 
 function flattenQueryFragments(
-  queryFragments: QueryFragments,
-  interpolationValues: InterpolationValues,
-): QueryFragments {
+  queryFragments: ReadonlyArray<QueryFragment>,
+  interpolationValues: InterpolationValue[],
+): QueryFragment[] {
   const firstQueryFragment = queryFragments[0];
 
-  const flattenedQueryFragments: QueryFragments = interpolationValues.reduce(
+  const flattenedQueryFragments: QueryFragment[] = interpolationValues.reduce(
     (partialQueryFragments, interpolationValue, interpolationValueIndex) => {
       const currentOriginalFragment = queryFragments[interpolationValueIndex];
       const nextOriginalFragment = queryFragments[interpolationValueIndex + 1];
@@ -63,9 +71,9 @@ function flattenQueryFragments(
 }
 
 function flattenInterpolationValues(
-  interpolationValues: ReadonlyArray<InterpolationValue>,
-): QueryValues {
-  const flattenedQueryValues: QueryValues = interpolationValues.flatMap(
+  interpolationValues: InterpolationValue[],
+): QueryValue[] {
+  const flattenedQueryValues: QueryValue[] = interpolationValues.flatMap(
     interpolationValue => {
       if (isQuery(interpolationValue)) {
         const subquery = interpolationValue;

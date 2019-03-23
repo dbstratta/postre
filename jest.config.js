@@ -10,7 +10,6 @@ module.exports = {
   ],
   moduleFileExtensions: ['js', 'ts', 'json'],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.[jt]s$',
-  setupFilesAfterEnv: ['./src/jest.setup.ts'],
   modulePathIgnorePatterns: ['node_modules', '<rootDir>/dist/'],
   transform: {
     '^.+\\.[jt]s$': 'babel-jest',

@@ -1,0 +1,21 @@
+{
+  "eslint.autoFixOnSave": true,
+  "eslint.validate": ["javascript", "typescript"],
+  "prettier.eslintIntegration": false,
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/dist": true,
+    "**/node_modules": true
+  },
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/dist/**": true
+  }
+}

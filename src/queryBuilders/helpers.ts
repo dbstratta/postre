@@ -1,9 +1,11 @@
-import { Query, InterpolationValueKind } from './types';
+import { postreSymbol } from './constants';
+import { QueryObject, InterpolationValueKind } from './sql';
 
-export function isQuery(value: any): value is Query {
+export function isQuery(value: any): value is QueryObject {
   return (
     typeof value === 'object' &&
     value &&
+    value[postreSymbol] &&
     value.kind === InterpolationValueKind.Query
   );
 }

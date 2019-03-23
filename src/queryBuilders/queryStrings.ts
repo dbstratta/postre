@@ -1,7 +1,7 @@
-import { Query } from './types';
 import { sqlTokens } from './constants';
+import { QueryObject } from './sql';
 
-export function makeParametizedQueryString(query: Query): string {
+export function makeParametizedQueryString(query: QueryObject): string {
   const queryString = query.fragments.reduce(
     (partialQueryString, queryFragment, index) => {
       if (index === 0) {
@@ -18,7 +18,7 @@ export function makeParametizedQueryString(query: Query): string {
   return queryString;
 }
 
-export function makeUnsafeRawQueryString(query: Query): string {
+export function makeUnsafeRawQueryString(query: QueryObject): string {
   const queryString = query.fragments.reduce(
     (partialQueryString, queryFragment, index) => {
       if (index === 0) {
