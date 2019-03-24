@@ -1,13 +1,10 @@
 import * as pg from 'pg';
 
-import * as executors from '../executors';
-import { QueryObject } from '../queryBuilders';
-
 import {
-  IClient,
+  BaseClient,
   StartTransactionOptions,
   TransactionFunction,
-} from './IClient';
+} from './BaseClient';
 import { Transaction } from './Transaction';
 import { doInTransaction } from './helpers';
 
@@ -15,46 +12,17 @@ export type PoolClientOptions = {
   pgPoolClient: pg.PoolClient;
 };
 
-export class PoolClient implements IClient {
+export class PoolClient extends BaseClient {
   public pgPoolClient: pg.PoolClient;
 
   public constructor(options: PoolClientOptions) {
+    super();
+
     this.pgPoolClient = options.pgPoolClient;
   }
 
-  public oneFirst(
-    queryObject: QueryObject,
-    options?: executors.OneFirstQueryOptions,
-  ): ReturnType<typeof executors.oneFirst> {
-    return executors.oneFirst(this.pgPoolClient, queryObject, options);
-  }
-
-  public one(
-    queryObject: QueryObject,
-    options?: executors.QueryOptions,
-  ): ReturnType<typeof executors.one> {
-    return executors.one(this.pgPoolClient, queryObject, options);
-  }
-
-  public maybeOne(
-    queryObject: QueryObject,
-    options?: executors.QueryOptions,
-  ): ReturnType<typeof executors.maybeOne> {
-    return executors.maybeOne(this.pgPoolClient, queryObject, options);
-  }
-
-  public all(
-    queryObject: QueryObject,
-    options?: executors.QueryOptions,
-  ): ReturnType<typeof executors.all> {
-    return executors.all(this.pgPoolClient, queryObject, options);
-  }
-
-  public query(
-    queryObject: QueryObject,
-    options?: executors.QueryOptions,
-  ): ReturnType<typeof executors.query> {
-    return executors.query(this.pgPoolClient, queryObject, options);
+  public getPgClient(): pg.PoolClient {
+    return this.pgPoolClient;
   }
 
   public async startTransaction(

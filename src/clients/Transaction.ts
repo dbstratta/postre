@@ -1,12 +1,13 @@
-import { QueryObject, sql } from '../queryBuilders';
-import * as executors from '../executors';
+import * as pg from 'pg';
+
+import { sql } from '../queryBuilders';
 
 import {
-  IClient,
+  BaseClient,
   StartTransactionOptions,
   TransactionIsolationLevel,
   TransactionFunction,
-} from './IClient';
+} from './BaseClient';
 import { Client } from './Client';
 import { PoolClient } from './PoolClient';
 
@@ -19,13 +20,16 @@ export type TransactionConfig = {
   releaseWhenFinished: boolean;
 };
 
-export class Transaction<TClient extends Client | PoolClient>
-  implements IClient {
+export class Transaction<
+  TClient extends Client | PoolClient
+> extends BaseClient {
   public config: TransactionConfig;
 
   public readonly client: TClient;
 
   public constructor(options: TransactionOptions<TClient>) {
+    super();
+
     this.config = {
       isolationLevel: options.isolationLevel,
       releaseWhenFinished:
@@ -37,39 +41,8 @@ export class Transaction<TClient extends Client | PoolClient>
     this.client = options.client;
   }
 
-  public oneFirst(
-    queryObject: QueryObject,
-    options?: executors.OneFirstQueryOptions,
-  ): ReturnType<typeof executors.oneFirst> {
-    return this.client.oneFirst(queryObject, options);
-  }
-
-  public one(
-    queryObject: QueryObject,
-    options?: executors.QueryOptions,
-  ): ReturnType<typeof executors.one> {
-    return this.client.one(queryObject, options);
-  }
-
-  public maybeOne(
-    queryObject: QueryObject,
-    options?: executors.QueryOptions,
-  ): ReturnType<typeof executors.maybeOne> {
-    return this.client.maybeOne(queryObject, options);
-  }
-
-  public all(
-    queryObject: QueryObject,
-    options?: executors.QueryOptions,
-  ): ReturnType<typeof executors.all> {
-    return this.client.all(queryObject, options);
-  }
-
-  public query(
-    queryObject: QueryObject,
-    options?: executors.QueryOptions,
-  ): ReturnType<typeof executors.query> {
-    return this.client.query(queryObject, options);
+  public getPgClient(): pg.Client | pg.PoolClient {
+    return this.client.getPgClient();
   }
 
   public async startTransaction(

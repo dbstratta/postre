@@ -1,4 +1,4 @@
-import { TransactionFunction, StartTransactionOptions } from './IClient';
+import { TransactionFunction, StartTransactionOptions } from './BaseClient';
 import { Client } from './Client';
 import { PoolClient } from './PoolClient';
 

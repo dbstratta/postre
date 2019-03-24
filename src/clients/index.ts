@@ -1,9 +1,9 @@
 export {
-  IClient,
+  BaseClient,
   TransactionFunction,
   TransactionIsolationLevel,
   StartTransactionOptions,
-} from './IClient';
+} from './BaseClient';
 export { Pool, PoolOptions } from './Pool';
 export { Client, ClientOptions } from './Client';
 export { Transaction, TransactionOptions } from './Transaction';

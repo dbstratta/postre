@@ -1,13 +1,10 @@
 import * as pg from 'pg';
 
-import { QueryObject } from '../queryBuilders';
-import * as executors from '../executors';
-
 import {
-  IClient,
+  BaseClient,
   StartTransactionOptions,
   TransactionFunction,
-} from './IClient';
+} from './BaseClient';
 import { PoolClient } from './PoolClient';
 import { Transaction } from './Transaction';
 import { ClientSharedOptions } from './types';
@@ -24,10 +21,24 @@ export type PoolOptions = ClientSharedOptions & {
   idleClientDisconnectionTimeoutInMilliseconds?: number;
 };
 
-export class Pool implements IClient {
+export type PoolConfig = {
+  maxClients: number;
+  minClients: number;
+};
+
+export class Pool extends BaseClient {
+  public config: PoolConfig;
+
   public pgPool: pg.Pool;
 
   public constructor(options: PoolOptions) {
+    super();
+
+    this.config = {
+      maxClients: options.maxClients,
+      minClients: options.minClients,
+    };
+
     this.pgPool = new pg.Pool({
       host: options.databaseHost,
       port: options.databasePort,
@@ -41,39 +52,8 @@ export class Pool implements IClient {
     });
   }
 
-  public oneFirst(
-    queryObject: QueryObject,
-    options?: executors.OneFirstQueryOptions,
-  ): ReturnType<typeof executors.oneFirst> {
-    return executors.oneFirst(this.pgPool, queryObject, options);
-  }
-
-  public one(
-    queryObject: QueryObject,
-    options?: executors.QueryOptions,
-  ): ReturnType<typeof executors.one> {
-    return executors.one(this.pgPool, queryObject, options);
-  }
-
-  public maybeOne(
-    queryObject: QueryObject,
-    options?: executors.QueryOptions,
-  ): ReturnType<typeof executors.maybeOne> {
-    return executors.maybeOne(this.pgPool, queryObject, options);
-  }
-
-  public all(
-    queryObject: QueryObject,
-    options?: executors.QueryOptions,
-  ): ReturnType<typeof executors.all> {
-    return executors.all(this.pgPool, queryObject, options);
-  }
-
-  public query(
-    queryObject: QueryObject,
-    options?: executors.QueryOptions,
-  ): ReturnType<typeof executors.query> {
-    return executors.query(this.pgPool, queryObject, options);
+  public getPgClient(): pg.Pool {
+    return this.pgPool;
   }
 
   public async startTransaction(
@@ -109,6 +89,37 @@ export class Pool implements IClient {
     } finally {
       await poolClient.release();
     }
+  }
+
+  /**
+   * Returns the total count of clients in the pool.
+   */
+  public getTotalClientCount(): number {
+    return this.pgPool.totalCount;
+  }
+
+  /**
+   * Returns the count of clients in the pool
+   * that are currently idle.
+   */
+  public getIdleClientCount(): number {
+    return this.pgPool.idleCount;
+  }
+
+  /**
+   * Returns the count of clients in the pool
+   * that are currently being used.
+   */
+  public getWorkingClientCount(): number {
+    return this.getTotalClientCount() - this.getIdleClientCount();
+  }
+
+  /**
+   * Returns the count of queries that are waiting
+   * for a client to be released.
+   */
+  public getPendingQueryCount(): number {
+    return this.pgPool.waitingCount;
   }
 }
 
