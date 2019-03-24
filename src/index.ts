@@ -9,4 +9,3 @@ export {
   makeUnsafeRawQueryString,
 } from './queryBuilders';
 export { PostreError, NoRowsError, MultipleRowsError } from './errors';
-export { one } from './executors';

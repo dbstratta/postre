@@ -1,5 +1,5 @@
 import { sqlTokens } from './constants';
-import { QueryObject } from './sql';
+import { QueryObject, QueryValue } from './sql';
 
 export function makeParametizedQueryString(query: QueryObject): string {
   const queryString = query.fragments.reduce(
@@ -9,7 +9,10 @@ export function makeParametizedQueryString(query: QueryObject): string {
       }
 
       return (
-        partialQueryString + sqlTokens.parameterPrefix + index + queryFragment
+        partialQueryString +
+        sqlTokens.parameterPrefix +
+        index.toString() +
+        queryFragment
       );
     },
     '',
@@ -25,11 +28,11 @@ export function makeUnsafeRawQueryString(query: QueryObject): string {
         return partialQueryString + queryFragment;
       }
 
-      const unsafeSerializedValue = unsafeSerializeValue(
+      const unsafeSerializedQueryValue = unsafeSerializeQueryValue(
         query.values[index - 1],
       );
 
-      return partialQueryString + unsafeSerializedValue + queryFragment;
+      return partialQueryString + unsafeSerializedQueryValue + queryFragment;
     },
     '',
   );
@@ -37,21 +40,25 @@ export function makeUnsafeRawQueryString(query: QueryObject): string {
   return queryString;
 }
 
-function unsafeSerializeValue(value: string | number | boolean | null): string {
-  if (typeof value === 'string') {
-    return `'${value}'`;
+function unsafeSerializeQueryValue(queryValue: QueryValue): string {
+  if (typeof queryValue === 'string') {
+    return `'${queryValue}'`;
   }
 
-  if (typeof value === 'number') {
-    return value.toString();
+  if (typeof queryValue === 'number') {
+    return queryValue.toString();
   }
 
-  if (typeof value === 'boolean') {
-    if (value) {
+  if (typeof queryValue === 'boolean') {
+    if (queryValue) {
       return sqlTokens.true;
     }
 
     return sqlTokens.false;
+  }
+
+  if (typeof queryValue === 'object' && queryValue !== null) {
+    return `'${JSON.stringify(queryValue)}'`;
   }
 
   return sqlTokens.null;

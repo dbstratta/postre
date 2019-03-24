@@ -1,20 +1,20 @@
-import MultipleRowsError from '../errors/MultipleRowsError';
+import { MultipleRowsError } from '../errors';
 
 import { Executor } from './executor';
-import { query } from './query';
+import { all } from './all';
 
-export const maybeOne: Executor<any> = async (poolOrClient, queryObject) => {
-  const result = await query(poolOrClient, queryObject);
+export const maybeOne: Executor<any> = async (client, queryObject, options) => {
+  const rows = await all(client, queryObject, options);
 
-  if (result.rowCount === 0) {
+  if (rows.length === 0) {
     return null;
   }
 
-  if (result.rowCount > 1) {
-    throw new MultipleRowsError();
+  if (rows.length > 1) {
+    throw new MultipleRowsError(rows.length);
   }
 
-  const row = result.rows[0];
+  const row = rows[0];
 
   return row;
 };

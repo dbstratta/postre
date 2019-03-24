@@ -1,7 +1,11 @@
 import { postreSymbol } from './constants';
-import { isQuery, replaceLastValue } from './helpers';
+import { isQuery, isUnsafeRawQuery, replaceLastValue } from './helpers';
+import { unsafeRaw, UnsafeRawQueryObject } from './unsafeRaw';
 
-export type InterpolationValue = QueryValue | QueryObject;
+export type InterpolationValue =
+  | QueryValue
+  | QueryObject
+  | UnsafeRawQueryObject;
 
 export type QueryObject = {
   kind: InterpolationValueKind.Query;
@@ -12,11 +16,12 @@ export type QueryObject = {
 
 export enum InterpolationValueKind {
   Query = 'query',
+  UnsafeRawQuery = 'unsafeRawQuery',
 }
 
 export type QueryFragment = string;
 
-export type QueryValue = number | string | boolean | null;
+export type QueryValue = number | string | boolean | object | null;
 
 export function sql(
   queryFragments: ReadonlyArray<QueryFragment>,
@@ -35,14 +40,20 @@ export function sql(
   return queryObject;
 }
 
+sql.unsafeRaw = unsafeRaw;
+
 function flattenQueryFragments(
   queryFragments: ReadonlyArray<QueryFragment>,
   interpolationValues: InterpolationValue[],
 ): QueryFragment[] {
   const firstQueryFragment = queryFragments[0];
 
-  const flattenedQueryFragments: QueryFragment[] = interpolationValues.reduce(
-    (partialQueryFragments, interpolationValue, interpolationValueIndex) => {
+  const flattenedQueryFragments = interpolationValues.reduce(
+    (
+      partialQueryFragments: QueryFragment[],
+      interpolationValue,
+      interpolationValueIndex,
+    ) => {
       const currentOriginalFragment = queryFragments[interpolationValueIndex];
       const nextOriginalFragment = queryFragments[interpolationValueIndex + 1];
 
@@ -59,6 +70,15 @@ function flattenQueryFragments(
           modifiedPartialQueryFragments[
             modifiedPartialQueryFragments.length - 1
           ] + nextOriginalFragment,
+        );
+      }
+
+      if (isUnsafeRawQuery(interpolationValue)) {
+        const unsafeString = interpolationValue.unsafeString;
+
+        return replaceLastValue(
+          partialQueryFragments,
+          currentOriginalFragment + unsafeString + nextOriginalFragment,
         );
       }
 
@@ -79,6 +99,10 @@ function flattenInterpolationValues(
         const subquery = interpolationValue;
 
         return subquery.values;
+      }
+
+      if (isUnsafeRawQuery(interpolationValue)) {
+        return [];
       }
 
       return interpolationValue;

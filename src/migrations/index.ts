@@ -1,0 +1,1 @@
+export { createMigration } from './createMigration';
