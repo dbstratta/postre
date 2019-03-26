@@ -15,24 +15,22 @@ export async function createMigration(migrationName: string): Promise<string> {
 
   const migrationFilename = makeMigrationFilename(migrationName);
 
-  await writeMigrationFile(configuration, migrationFilename, spinner);
+  await writeMigrationToFile(configuration, migrationFilename, spinner);
 
   return migrationFilename;
 }
-
-export default createMigration;
 
 function makeMigrationFilename(
   migrationName: string,
   extension: SupportedFileExtensions = SupportedFileExtensions.Js,
   date: Date = new Date(),
 ): string {
-  const dateString = serializeDateForMigrationFilename(date);
+  const migrationId = makeMigrationId(date);
 
-  return `${dateString}_${migrationName}.${extension}`;
+  return `${migrationId}_${migrationName}.${extension}`;
 }
 
-function serializeDateForMigrationFilename(date: Date): string {
+function makeMigrationId(date: Date): number {
   const yearString = date
     .getUTCFullYear()
     .toString()
@@ -59,18 +57,21 @@ function serializeDateForMigrationFilename(date: Date): string {
     .toString()
     .padStart(4, '0');
 
-  return (
+  const migrationId = parseInt(
     yearString +
-    monthString +
-    dayString +
-    hourString +
-    minuteString +
-    secondString +
-    millisecondString
+      monthString +
+      dayString +
+      hourString +
+      minuteString +
+      secondString +
+      millisecondString,
+    10,
   );
+
+  return migrationId;
 }
 
-async function writeMigrationFile(
+async function writeMigrationToFile(
   configuration: MigrationConfiguration,
   filename: string,
   spinner: Ora,

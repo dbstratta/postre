@@ -127,7 +127,7 @@ async function migrateMigration(
   migration: Migration,
   spinner: Ora,
 ): Promise<void> {
-  spinner.start(`Migrating ${greenBright(migrationFilename)}`);
+  spinner.start(`migrating ${greenBright(migrationFilename)}`);
 
   try {
     await migration.up(transaction);
