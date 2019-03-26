@@ -1,3 +1,4 @@
+export { ClientConnectionOptions } from './types';
 export {
   BaseClient,
   TransactionFunction,

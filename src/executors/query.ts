@@ -5,9 +5,14 @@ import { Executor } from './executor';
 export type QueryResult = {
   rows: Row[];
   rowCount: number;
+  fields: FieldInfo[];
 };
 
 export type Row = any;
+
+export type FieldInfo = {
+  name: string;
+};
 
 export type QueryOptions = {
   rowMode?: RowMode;
@@ -35,6 +40,7 @@ export const query: Executor<QueryResult> = async (
   const result: QueryResult = {
     rows: rawResult.rows,
     rowCount: rawResult.rowCount,
+    fields: rawResult.fields,
   };
 
   return result;

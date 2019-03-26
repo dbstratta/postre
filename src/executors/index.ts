@@ -4,3 +4,4 @@ export { all } from './all';
 export { maybeOne } from './maybeOne';
 export { one } from './one';
 export { oneFirst, OneFirstQueryOptions } from './oneFirst';
+export { allFirst, AllFirstQueryOptions } from './allFirst';

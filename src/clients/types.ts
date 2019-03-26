@@ -1,4 +1,4 @@
-export type ClientSharedOptions =
+export type ClientConnectionOptions =
   | {
       /**
        * The host to connect to.

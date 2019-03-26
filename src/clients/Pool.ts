@@ -7,9 +7,9 @@ import {
 } from './BaseClient';
 import { PoolClient } from './PoolClient';
 import { Transaction } from './Transaction';
-import { ClientSharedOptions } from './types';
+import { ClientConnectionOptions } from './types';
 
-export type PoolOptions = ClientSharedOptions & {
+export type PoolOptions = ClientConnectionOptions & {
   /**
    * Maximum number of clients the pool can have.
    */
@@ -115,11 +115,19 @@ export class Pool extends BaseClient {
   }
 
   /**
-   * Returns the count of queries that are waiting
+   * Returns the count of requests that are waiting
    * for a client to be released.
    */
   public getPendingQueryCount(): number {
     return this.pgPool.waitingCount;
+  }
+
+  /**
+   * Destroys the connection pool.
+   * Cannot be used after being destroyed.
+   */
+  public async destroy(): Promise<void> {
+    await this.pgPool.end();
   }
 }
 

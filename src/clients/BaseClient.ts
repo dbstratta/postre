@@ -43,6 +43,13 @@ export abstract class BaseClient {
     return executors.query(this.getPgClient(), queryObject, options);
   }
 
+  public allFirst(
+    queryObject: QueryObject,
+    options?: executors.AllFirstQueryOptions,
+  ): ReturnType<typeof executors.allFirst> {
+    return executors.allFirst(this.getPgClient(), queryObject, options);
+  }
+
   public abstract startTransaction(
     options?: StartTransactionOptions,
   ): Promise<BaseClient>;

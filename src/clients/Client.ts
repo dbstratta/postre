@@ -7,8 +7,9 @@ import {
 } from './BaseClient';
 import { Transaction } from './Transaction';
 import { doInTransaction } from './helpers';
+import { ClientConnectionOptions } from './types';
 
-export type ClientOptions = {};
+export type ClientOptions = ClientConnectionOptions;
 
 export class Client extends BaseClient {
   public pgClient: pg.Client;
@@ -16,7 +17,14 @@ export class Client extends BaseClient {
   public constructor(options: ClientOptions) {
     super();
 
-    this.pgClient = new pg.Client();
+    this.pgClient = new pg.Client({
+      host: options.databaseHost,
+      port: options.databasePort,
+      user: options.databaseUser,
+      password: options.databaseUserPassword,
+      database: options.databaseName,
+      connectionString: options.databaseConnectionString,
+    });
   }
 
   public getPgClient(): pg.Client {
@@ -41,6 +49,17 @@ export class Client extends BaseClient {
     options?: StartTransactionOptions,
   ): Promise<TReturn> {
     return doInTransaction(this, transactionFunction, options);
+  }
+
+  public async connect(): Promise<void> {
+    await this.pgClient.connect();
+  }
+
+  /**
+   * Disconnects the client from the database.
+   */
+  public async disconnect(): Promise<void> {
+    await this.pgClient.end();
   }
 }
 

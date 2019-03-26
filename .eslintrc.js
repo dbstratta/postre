@@ -46,8 +46,10 @@ module.exports = {
 
   rules: {
     'no-use-before-define': 'off',
+    'no-console': 'off',
 
     'unicorn/filename-case': 'off',
+    'unicorn/no-process-exit': 'off',
 
     'import/no-named-as-default': 'off',
     'import/no-extraneous-dependencies': 'off',

@@ -28,7 +28,10 @@ function getPresets() {
 }
 
 function getPlugins() {
-  const basePlugins = ['@babel/plugin-proposal-class-properties'];
+  const basePlugins = [
+    '@babel/plugin-proposal-class-properties',
+    'dynamic-import-node',
+  ];
 
   return basePlugins;
 }
