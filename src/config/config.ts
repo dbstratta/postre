@@ -61,7 +61,7 @@ export async function loadConfiguration(
     databaseConnectionString: result.config.databaseConnectionString,
   };
 
-  spinner.succeed('postre configuration file found');
+  spinner.succeed('postre configuration file loaded successfully');
 
   return migrationConfiguration;
 }

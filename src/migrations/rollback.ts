@@ -1,18 +1,12 @@
-import ora, { Ora } from 'ora';
 import { greenBright, redBright } from 'colorette';
+import ora, { Ora } from 'ora';
 
-import { Transaction, Client } from '../clients';
 import { loadConfiguration, MigrationConfiguration } from '../config';
+import { Transaction, Client } from '../clients';
 
-import {
-  findAndImportAllMigrations,
-  MigrationTuple,
-  Migration,
-} from './migrationFiles';
+import { MigrationId, MigrationFilename } from './types';
 import {
   setupClient,
-  lockMigrationsTable,
-  getMigratedMigrationIds,
   checkIfMigrationIdIsValid,
   getMigrationIdFromFilename,
   hasMigrationBeenMigrated,
@@ -21,11 +15,18 @@ import {
 import {
   createSchemaMigrationsTableIfItDoesntExist,
   deleteFromSchemaMigrationsTable,
+  lockMigrationsTable,
+  getMigratedMigrationIds,
 } from './schemaMigrationsTable';
+import {
+  findAndImportAllMigrations,
+  MigrationTuple,
+  Migration,
+} from './migrationFiles';
 
 export type RollbackArgs =
   | {
-      toMigrationId: number;
+      toMigrationId: MigrationId;
       step?: undefined;
     }
   | {
@@ -91,8 +92,8 @@ export async function rollback(args: RollbackArgs): Promise<void> {
 async function rollbackTo(
   transaction: Transaction<Client>,
   configuration: MigrationConfiguration,
-  toMigrationId: number,
-  migratedMigrationIds: number[],
+  toMigrationId: MigrationId,
+  migratedMigrationIds: MigrationId[],
   migrationTuples: MigrationTuple[],
   spinner: Ora,
 ): Promise<void> {
@@ -122,7 +123,7 @@ async function rollbackStep(
   transaction: Transaction<Client>,
   configuration: MigrationConfiguration,
   step: number,
-  migratedMigrationIds: number[],
+  migratedMigrationIds: MigrationId[],
   migrationTuples: MigrationTuple[],
   spinner: Ora,
 ): Promise<void> {
@@ -148,7 +149,7 @@ async function rollbackStep(
 async function rollbackAll(
   transaction: Transaction<Client>,
   configuration: MigrationConfiguration,
-  migratedMigrationIds: number[],
+  migratedMigrationIds: MigrationId[],
   migrationTuples: MigrationTuple[],
   spinner: Ora,
 ): Promise<void> {
@@ -168,7 +169,7 @@ async function rollbackAll(
 async function rollbackMigration(
   transaction: Transaction<Client>,
   configuration: MigrationConfiguration,
-  migrationFilename: string,
+  migrationFilename: MigrationFilename,
   migration: Migration,
   spinner: Ora,
 ): Promise<void> {

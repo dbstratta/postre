@@ -6,6 +6,7 @@ import { greenBright } from 'colorette';
 
 import { loadConfiguration, MigrationConfiguration } from '../config';
 
+import { MigrationId } from './types';
 import {
   SupportedFileExtensions,
   migrationFilenameSeparator,
@@ -31,7 +32,7 @@ function makeMigrationFilename(
   return `${migrationIdString}${migrationFilenameSeparator}${migrationName}.${extension}`;
 }
 
-function makeMigrationId(date: Date): number {
+function makeMigrationId(date: Date): MigrationId {
   const yearString = date
     .getUTCFullYear()
     .toString()
@@ -58,7 +59,7 @@ function makeMigrationId(date: Date): number {
     .toString()
     .padStart(4, '0');
 
-  const migrationId = parseInt(
+  const migrationId = BigInt(
     yearString +
       monthString +
       dayString +
@@ -66,7 +67,6 @@ function makeMigrationId(date: Date): number {
       minuteString +
       secondString +
       millisecondString,
-    10,
   );
 
   return migrationId;

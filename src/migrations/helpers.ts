@@ -1,33 +1,19 @@
-import { sql } from '../queryBuilders';
-import { Client, ClientOptions, Transaction } from '../clients';
+import { Client, ClientOptions } from '../clients';
 import { MigrationError } from '../errors';
 import { MigrationConfiguration } from '../config';
 
+import { MigrationFilename, MigrationId } from './types';
 import { migrationFilenameSeparator } from './constants';
 import { MigrationTuple } from './migrationFiles';
 
-export function getMigrationIdFromFilename(migrationFilename: string): number {
-  const migrationId = parseInt(
+export function getMigrationIdFromFilename(
+  migrationFilename: MigrationFilename,
+): MigrationId {
+  const migrationId = BigInt(
     migrationFilename.split(migrationFilenameSeparator)[0],
-    10,
   );
 
   return migrationId;
-}
-
-export async function getMigratedMigrationIds(
-  client: Client | Transaction<Client>,
-  configuration: MigrationConfiguration,
-): Promise<number[]> {
-  const migrationIds = await client.allFirst(sql`
-    SELECT id
-    FROM ${sql.unsafeRaw(getMigrationTableNameWithSchema(configuration))}
-    ORDER BY
-      migrated_at DESC,
-      id DESC
-  `);
-
-  return migrationIds;
 }
 
 export async function setupClient(
@@ -56,17 +42,6 @@ export async function setupClient(
   return client;
 }
 
-export async function lockMigrationsTable(
-  client: Client | Transaction<Client>,
-  configuration: MigrationConfiguration,
-): Promise<void> {
-  await client.query(sql`
-    LOCK TABLE ${sql.unsafeRaw(getMigrationTableNameWithSchema(configuration))}
-      IN ACCESS EXCLUSIVE MODE
-      NOWAIT
-  `);
-}
-
 export function getMigrationTableNameWithSchema(
   configuration: MigrationConfiguration,
 ): string {
@@ -76,16 +51,16 @@ export function getMigrationTableNameWithSchema(
 }
 
 export function hasMigrationBeenMigrated(
-  migratedMigrationIds: number[],
-  migrationId: number,
+  migratedMigrationIds: MigrationId[],
+  migrationId: MigrationId,
 ): boolean {
   return migratedMigrationIds.includes(migrationId);
 }
 
 export function getNotMigratedMigrationIds(
-  migratedMigrationIds: number[],
+  migratedMigrationIds: MigrationId[],
   migrationTuples: MigrationTuple[],
-): number[] {
+): MigrationId[] {
   const notMigratedMigrationIds = migrationTuples
     .map(([migrationFilename]) => getMigrationIdFromFilename(migrationFilename))
     .filter(migrationId => !migratedMigrationIds.includes(migrationId));
@@ -117,7 +92,7 @@ export function getArrayElementOrFirst<TElement>(
 
 export function checkIfMigrationIdIsValid(
   migrationTuples: MigrationTuple[],
-  migrationId: number,
+  migrationId: MigrationId,
 ): void {
   if (!isMigrationIdValid(migrationTuples, migrationId)) {
     throw new MigrationError(`Couldn't find migration with id ${migrationId}`);
@@ -126,7 +101,7 @@ export function checkIfMigrationIdIsValid(
 
 export function isMigrationIdValid(
   migrationTuples: MigrationTuple[],
-  migrationId: number,
+  migrationId: MigrationId,
 ): boolean {
   return migrationTuples
     .map(([migrationFilename]) => getMigrationIdFromFilename(migrationFilename))

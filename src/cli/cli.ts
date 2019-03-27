@@ -1,24 +1,33 @@
 import commander from 'commander';
 
 import { initialize } from '../config';
-import { migrate, rollback } from '../migrations';
+import { migrate, rollback, createMigration } from '../migrations';
 
 const pkg = require('../../package.json');
 
 export async function start(): Promise<void> {
   commander
     .name('postre')
-    .description('postre CLI')
+    .description(`postre CLI ${pkg.version}`)
     .version(pkg.version, '-v, --version');
 
   commander
-    .command(
-      'initialize [directoryPath]',
-      'initialize postre configuration file',
-    )
+    .command('initialize [directoryPath]')
+    .description('initialize postre configuration file')
     .alias('init')
     .action(async directoryPath => {
-      await initialize({ directoryPath });
+      await tryOrLogError(async () => {
+        await initialize({ directoryPath });
+      });
+    });
+
+  commander
+    .command('create-migration <migrationName>')
+    .description('create an empty migration file')
+    .action(async migrationName => {
+      await tryOrLogError(async () => {
+        await createMigration(migrationName);
+      });
     });
 
   commander
@@ -36,7 +45,9 @@ export async function start(): Promise<void> {
       parseIntegerOption,
     )
     .action(async options => {
-      await migrate({ toMigrationId: options.to, step: options.step });
+      await tryOrLogError(async () => {
+        await migrate({ toMigrationId: options.to, step: options.step });
+      });
     });
 
   commander
@@ -54,9 +65,15 @@ export async function start(): Promise<void> {
       parseIntegerOption,
     )
     .action(async options => {
-      await rollback({
-        toMigrationId: options.to,
-        step: options.step,
+      await tryOrLogError(async () => {
+        if (options.to === undefined && options.step === undefined) {
+          commander.help();
+        }
+
+        await rollback({
+          toMigrationId: options.to,
+          step: options.step,
+        });
       });
     });
 
@@ -65,4 +82,12 @@ export async function start(): Promise<void> {
 
 function parseIntegerOption(value: string): number {
   return Number.parseInt(value, 10);
+}
+
+async function tryOrLogError(fn: () => void | Promise<void>): Promise<void> {
+  try {
+    await fn();
+  } catch (error) {
+    console.error(error);
+  }
 }

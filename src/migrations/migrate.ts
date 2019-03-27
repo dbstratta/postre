@@ -1,23 +1,24 @@
-import ora, { Ora } from 'ora';
 import { greenBright, redBright } from 'colorette';
+import ora, { Ora } from 'ora';
 
-import { Transaction, Client } from '../clients';
 import { loadConfiguration, MigrationConfiguration } from '../config';
+import { Transaction, Client } from '../clients';
 
+import { MigrationId, MigrationFilename } from './types';
 import {
-  createSchemaMigrationsTableIfItDoesntExist,
-  insertIntoSchemaMigrationsTable,
-} from './schemaMigrationsTable';
-import {
-  getMigratedMigrationIds,
   setupClient,
-  lockMigrationsTable,
   getMigrationIdFromFilename,
   hasMigrationBeenMigrated,
   getNotMigratedMigrationIds,
   getArrayElementOrLast,
   checkIfMigrationIdIsValid,
 } from './helpers';
+import {
+  createSchemaMigrationsTableIfItDoesntExist,
+  insertIntoSchemaMigrationsTable,
+  lockMigrationsTable,
+  getMigratedMigrationIds,
+} from './schemaMigrationsTable';
 import {
   Migration,
   MigrationTuple,
@@ -26,7 +27,7 @@ import {
 
 export type MigrateArgs =
   | {
-      toMigrationId: number;
+      toMigrationId: MigrationId;
       step?: undefined;
     }
   | {
@@ -92,8 +93,8 @@ export async function migrate(args: MigrateArgs): Promise<void> {
 async function migrateTo(
   transaction: Transaction<Client>,
   configuration: MigrationConfiguration,
-  toMigrationId: number,
-  migratedMigrationIds: number[],
+  toMigrationId: MigrationId,
+  migratedMigrationIds: MigrationId[],
   migrationTuples: MigrationTuple[],
   spinner: Ora,
 ): Promise<void> {
@@ -123,7 +124,7 @@ async function migrateStep(
   transaction: Transaction<Client>,
   configuration: MigrationConfiguration,
   step: number,
-  migratedMigrationIds: number[],
+  migratedMigrationIds: MigrationId[],
   migrationTuples: MigrationTuple[],
   spinner: Ora,
 ): Promise<void> {
@@ -158,7 +159,7 @@ async function migrateStep(
 async function migrateAll(
   transaction: Transaction<Client>,
   configuration: MigrationConfiguration,
-  migratedMigrationIds: number[],
+  migratedMigrationIds: MigrationId[],
   migrationTuples: MigrationTuple[],
   spinner: Ora,
 ): Promise<void> {
@@ -178,7 +179,7 @@ async function migrateAll(
 async function migrateMigration(
   transaction: Transaction<Client>,
   configuration: MigrationConfiguration,
-  migrationFilename: string,
+  migrationFilename: MigrationFilename,
   migration: Migration,
   spinner: Ora,
 ): Promise<void> {

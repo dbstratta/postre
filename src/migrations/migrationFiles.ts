@@ -7,7 +7,9 @@ import { Client, Transaction } from '../clients';
 import { MigrationError } from '../errors';
 import { MigrationConfiguration } from '../config';
 
-export type MigrationTuple = [string, Migration];
+import { MigrationFilename } from './types';
+
+export type MigrationTuple = [MigrationFilename, Migration];
 
 export type Migration = {
   migrate: MigrationFunction;
@@ -52,11 +54,11 @@ async function getMigrationFilenames(
 }
 
 async function importAllMigrations(
-  migrationFilenames: string[],
+  migrationFilenames: MigrationFilename[],
   configuration: MigrationConfiguration,
   spinner: Ora,
 ): Promise<MigrationTuple[]> {
-  spinner.start('Loading migration files');
+  spinner.start('loading migration files');
 
   let migrationTuples: MigrationTuple[];
 
@@ -76,18 +78,18 @@ async function importAllMigrations(
       ),
     );
   } catch (error) {
-    spinner.fail("Couldn't load migration files");
+    spinner.fail("couldn't load migration files");
 
     throw error;
   }
 
-  spinner.succeed('Migration files loaded successfully');
+  spinner.succeed('migration files loaded successfully');
 
   return migrationTuples;
 }
 
 export async function importMigration(
-  migrationFilename: string,
+  migrationFilename: MigrationFilename,
 ): Promise<Migration> {
   const migration = await import(migrationFilename);
 
@@ -97,7 +99,7 @@ export async function importMigration(
 }
 
 export function validateMigration(
-  migrationFilename: string,
+  migrationFilename: MigrationFilename,
   migration: Migration,
 ): void {
   if (
