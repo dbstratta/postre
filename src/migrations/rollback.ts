@@ -5,26 +5,25 @@ import { Transaction, Client } from '../clients';
 import { loadConfiguration, MigrationConfiguration } from '../config';
 
 import {
-  createSchemaMigrationsTableIfItDoesntExist,
-  insertIntoSchemaMigrationsTable,
-} from './schemaMigrationsTable';
+  findAndImportAllMigrations,
+  MigrationTuple,
+  Migration,
+} from './migrationFiles';
 import {
-  getMigratedMigrationIds,
   setupClient,
   lockMigrationsTable,
+  getMigratedMigrationIds,
+  checkIfMigrationIdIsValid,
   getMigrationIdFromFilename,
   hasMigrationBeenMigrated,
-  getNotMigratedMigrationIds,
-  getArrayElementOrLast,
-  checkIfMigrationIdIsValid,
+  getArrayElementOrFirst,
 } from './helpers';
 import {
-  Migration,
-  MigrationTuple,
-  findAndImportAllMigrations,
-} from './migrationFiles';
+  createSchemaMigrationsTableIfItDoesntExist,
+  deleteFromSchemaMigrationsTable,
+} from './schemaMigrationsTable';
 
-export type MigrateArgs =
+export type RollbackArgs =
   | {
       toMigrationId: number;
       step?: undefined;
@@ -38,7 +37,7 @@ export type MigrateArgs =
       toMigrationId?: undefined;
     };
 
-export async function migrate(args: MigrateArgs): Promise<void> {
+export async function rollback(args: RollbackArgs): Promise<void> {
   const spinner = ora();
   const configuration = await loadConfiguration(spinner);
 
@@ -60,7 +59,7 @@ export async function migrate(args: MigrateArgs): Promise<void> {
     );
 
     if (args.toMigrationId) {
-      await migrateTo(
+      await rollbackTo(
         transaction,
         configuration,
         args.toMigrationId,
@@ -69,7 +68,7 @@ export async function migrate(args: MigrateArgs): Promise<void> {
         spinner,
       );
     } else if (args.step) {
-      await migrateStep(
+      await rollbackStep(
         transaction,
         configuration,
         args.step,
@@ -78,7 +77,7 @@ export async function migrate(args: MigrateArgs): Promise<void> {
         spinner,
       );
     } else {
-      await migrateAll(
+      await rollbackAll(
         transaction,
         configuration,
         migratedMigrationIds,
@@ -89,7 +88,7 @@ export async function migrate(args: MigrateArgs): Promise<void> {
   });
 }
 
-async function migrateTo(
+async function rollbackTo(
   transaction: Transaction<Client>,
   configuration: MigrationConfiguration,
   toMigrationId: number,
@@ -104,11 +103,11 @@ async function migrateTo(
     const migrationId = getMigrationIdFromFilename(migrationFilename);
 
     if (
-      migrationId <= toMigrationId &&
-      !hasMigrationBeenMigrated(migratedMigrationIds, migrationId)
+      migrationId >= toMigrationId &&
+      hasMigrationBeenMigrated(migratedMigrationIds, migrationId)
     ) {
       // eslint-disable-next-line no-await-in-loop
-      await migrateMigration(
+      await rollbackMigration(
         transaction,
         configuration,
         migrationFilename,
@@ -119,7 +118,7 @@ async function migrateTo(
   }
 }
 
-async function migrateStep(
+async function rollbackStep(
   transaction: Transaction<Client>,
   configuration: MigrationConfiguration,
   step: number,
@@ -131,21 +130,12 @@ async function migrateStep(
     return;
   }
 
-  const notMigratedMigrationIds = getNotMigratedMigrationIds(
+  const toMigrationId = getArrayElementOrFirst(
     migratedMigrationIds,
-    migrationTuples,
+    migratedMigrationIds.length - step,
   );
 
-  if (notMigratedMigrationIds.length === 0) {
-    return;
-  }
-
-  const toMigrationId = getArrayElementOrLast(
-    notMigratedMigrationIds,
-    step - 1,
-  );
-
-  await migrateTo(
+  await rollbackTo(
     transaction,
     configuration,
     toMigrationId,
@@ -155,17 +145,17 @@ async function migrateStep(
   );
 }
 
-async function migrateAll(
+async function rollbackAll(
   transaction: Transaction<Client>,
   configuration: MigrationConfiguration,
   migratedMigrationIds: number[],
   migrationTuples: MigrationTuple[],
   spinner: Ora,
 ): Promise<void> {
-  const [latestMigrationFilename] = migrationTuples[migrationTuples.length - 1];
+  const [latestMigrationFilename] = migrationTuples[0];
   const latestMigrationId = getMigrationIdFromFilename(latestMigrationFilename);
 
-  await migrateTo(
+  await rollbackTo(
     transaction,
     configuration,
     latestMigrationId,
@@ -175,30 +165,30 @@ async function migrateAll(
   );
 }
 
-async function migrateMigration(
+async function rollbackMigration(
   transaction: Transaction<Client>,
   configuration: MigrationConfiguration,
   migrationFilename: string,
   migration: Migration,
   spinner: Ora,
 ): Promise<void> {
-  spinner.start(`migrating ${greenBright(migrationFilename)}`);
+  spinner.start(`rollbacking ${greenBright(migrationFilename)}`);
 
   const migrationId = getMigrationIdFromFilename(migrationFilename);
 
   try {
-    await migration.migrate(transaction);
+    await migration.rollback(transaction);
 
-    await insertIntoSchemaMigrationsTable(
+    await deleteFromSchemaMigrationsTable(
       transaction,
       configuration,
       migrationId,
     );
   } catch (error) {
-    spinner.fail(`${redBright(migrationFilename)} failed to migrate`);
+    spinner.fail(`${redBright(migrationFilename)} failed to rollback`);
 
     throw error;
   }
 
-  spinner.succeed(`${greenBright(migrationFilename)} migrated`);
+  spinner.succeed(`${greenBright(migrationFilename)} rollbacked`);
 }

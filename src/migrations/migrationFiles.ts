@@ -5,21 +5,35 @@ import { Ora } from 'ora';
 
 import { Client, Transaction } from '../clients';
 import { MigrationError } from '../errors';
-
-import { MigrationConfiguration } from './config';
+import { MigrationConfiguration } from '../config';
 
 export type MigrationTuple = [string, Migration];
 
 export type Migration = {
-  up: MigrationFunction;
-  down: MigrationFunction;
+  migrate: MigrationFunction;
+  rollback: MigrationFunction;
 };
 
 export type MigrationFunction = (
   client: Client | Transaction<Client>,
 ) => Promise<void>;
 
-export async function getMigrationFilenames(
+export async function findAndImportAllMigrations(
+  configuration: MigrationConfiguration,
+  spinner: Ora,
+): Promise<MigrationTuple[]> {
+  const migrationFilenames = await getMigrationFilenames(configuration);
+
+  const migrationTuples = await importAllMigrations(
+    migrationFilenames,
+    configuration,
+    spinner,
+  );
+
+  return migrationTuples;
+}
+
+async function getMigrationFilenames(
   configuration: MigrationConfiguration,
 ): Promise<string[]> {
   const dirEntities: Dirent[] = await fs.readdir(
@@ -37,22 +51,7 @@ export async function getMigrationFilenames(
   return filenames;
 }
 
-export function findMigrationFilename(
-  migrationId: number,
-  migrationFilenames: string[],
-): string | null {
-  const foundMigrationFilename = migrationFilenames.find(migrationFilename =>
-    migrationFilename.startsWith(migrationId.toString()),
-  );
-
-  if (!foundMigrationFilename) {
-    return null;
-  }
-
-  return foundMigrationFilename;
-}
-
-export async function importAllMigrations(
+async function importAllMigrations(
   migrationFilenames: string[],
   configuration: MigrationConfiguration,
   spinner: Ora,
@@ -103,8 +102,8 @@ export function validateMigration(
 ): void {
   if (
     typeof migration !== 'object' ||
-    typeof migration.up !== 'function' ||
-    typeof migration.down !== 'function'
+    typeof migration.migrate !== 'function' ||
+    typeof migration.rollback !== 'function'
   ) {
     throw new MigrationError(`Invalid file ${migrationFilename}`);
   }

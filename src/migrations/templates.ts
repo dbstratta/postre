@@ -1,13 +1,13 @@
-export const javaScriptTemplate = `\
+export const javaScriptMigrationFileTemplate = `\
 const { sql } = require('postre');
 
-async function up(client) {
+async function migrate(client) {
 
 }
 
-async function down(client) {
+async function rollback(client) {
 
 }
 
-module.exports = { up, down };
+module.exports = { migrate, rollback };
 `;

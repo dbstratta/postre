@@ -1,3 +1,4 @@
-export { MigrationConfiguration } from './config';
+export { loadConfiguration, MigrationConfiguration } from '../config';
 export { createMigration } from './createMigration';
-export { migrate } from './migrate';
+export { migrate, MigrateArgs } from './migrate';
+export { rollback, RollbackArgs } from './rollback';

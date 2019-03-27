@@ -4,6 +4,7 @@
   "license": "MIT",
   "private": false,
   "main": "dist/index.js",
+  "bin": "dist/bin.js",
   "types": "dist/index.d.ts",
   "author": {
     "name": "Diego Stratta",
@@ -33,6 +34,7 @@
   "dependencies": {
     "@types/pg": "^7.4.14",
     "colorette": "^1.0.7",
+    "commander": "^2.19.0",
     "cosmiconfig": "^5.2.0",
     "debug": "^4.1.1",
     "ora": "^3.2.0"

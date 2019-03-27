@@ -1,8 +1,10 @@
 import { sql } from '../queryBuilders';
 import { Client, ClientOptions, Transaction } from '../clients';
+import { MigrationError } from '../errors';
+import { MigrationConfiguration } from '../config';
 
 import { migrationFilenameSeparator } from './constants';
-import { MigrationConfiguration } from './config';
+import { MigrationTuple } from './migrationFiles';
 
 export function getMigrationIdFromFilename(migrationFilename: string): number {
   const migrationId = parseInt(
@@ -68,7 +70,7 @@ export async function lockMigrationsTable(
 export function getMigrationTableNameWithSchema(
   configuration: MigrationConfiguration,
 ): string {
-  return `"${configuration.migrationsTableSchemaName}"."${
+  return `"${configuration.migrationsTableSchema}"."${
     configuration.migrationsTableName
   }"`;
 }
@@ -78,4 +80,55 @@ export function hasMigrationBeenMigrated(
   migrationId: number,
 ): boolean {
   return migratedMigrationIds.includes(migrationId);
+}
+
+export function getNotMigratedMigrationIds(
+  migratedMigrationIds: number[],
+  migrationTuples: MigrationTuple[],
+): number[] {
+  const notMigratedMigrationIds = migrationTuples
+    .map(([migrationFilename]) => getMigrationIdFromFilename(migrationFilename))
+    .filter(migrationId => !migratedMigrationIds.includes(migrationId));
+
+  return notMigratedMigrationIds;
+}
+
+export function getArrayElementOrLast<TElement>(
+  array: TElement[],
+  index: number,
+): TElement {
+  if (index >= array.length) {
+    return array[array.length - 1];
+  }
+
+  return array[index];
+}
+
+export function getArrayElementOrFirst<TElement>(
+  array: TElement[],
+  index: number,
+): TElement {
+  if (index < 0) {
+    return array[0];
+  }
+
+  return array[index];
+}
+
+export function checkIfMigrationIdIsValid(
+  migrationTuples: MigrationTuple[],
+  migrationId: number,
+): void {
+  if (!isMigrationIdValid(migrationTuples, migrationId)) {
+    throw new MigrationError(`Couldn't find migration with id ${migrationId}`);
+  }
+}
+
+export function isMigrationIdValid(
+  migrationTuples: MigrationTuple[],
+  migrationId: number,
+): boolean {
+  return migrationTuples
+    .map(([migrationFilename]) => getMigrationIdFromFilename(migrationFilename))
+    .includes(migrationId);
 }
