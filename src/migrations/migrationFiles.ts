@@ -110,3 +110,26 @@ export function validateMigration(
     throw new MigrationError(`Invalid file ${migrationFilename}`);
   }
 }
+
+export async function createMigrationFilesDirectory(
+  configuration: MigrationConfiguration,
+  spinner: Ora,
+): Promise<void> {
+  try {
+    await fs.access(configuration.migrationFilesDirectoryPath);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      spinner.start('creating migration files directory');
+
+      await fs.mkdir(configuration.migrationFilesDirectoryPath, {
+        recursive: true,
+      });
+
+      spinner.succeed('migration files directory created');
+    } else {
+      spinner.fail("couldn't create migration files directory");
+
+      throw error;
+    }
+  }
+}

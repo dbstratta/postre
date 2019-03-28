@@ -12,6 +12,7 @@ import {
   getNotMigratedMigrationIds,
   getArrayElementOrLast,
   checkIfMigrationIdIsValid,
+  makeDurationInSecondsString,
 } from './helpers';
 import {
   createSchemaMigrationsTableIfItDoesntExist,
@@ -23,6 +24,7 @@ import {
   Migration,
   MigrationTuple,
   findAndImportAllMigrations,
+  createMigrationFilesDirectory,
 } from './migrationFiles';
 
 export type MigrateArgs =
@@ -43,6 +45,8 @@ export async function migrate(args: MigrateArgs): Promise<void> {
   const spinner = ora();
   const configuration = await loadConfiguration(spinner);
 
+  await createMigrationFilesDirectory(configuration, spinner);
+
   const migrationTuples = await findAndImportAllMigrations(
     configuration,
     spinner,
@@ -52,42 +56,63 @@ export async function migrate(args: MigrateArgs): Promise<void> {
 
   await createSchemaMigrationsTableIfItDoesntExist(client, configuration);
 
-  client.doInTransaction(async transaction => {
-    await lockMigrationsTable(transaction, configuration);
+  let migrationsMigrated = 0;
+  const startTimestamp = Date.now();
 
-    const migratedMigrationIds = await getMigratedMigrationIds(
-      transaction,
-      configuration,
-    );
+  try {
+    await client.doInTransaction(async transaction => {
+      await lockMigrationsTable(transaction, configuration);
 
-    if (args.toMigrationId) {
-      await migrateTo(
+      const migratedMigrationIds = await getMigratedMigrationIds(
         transaction,
         configuration,
-        args.toMigrationId,
-        migratedMigrationIds,
-        migrationTuples,
-        spinner,
       );
-    } else if (args.step) {
-      await migrateStep(
-        transaction,
-        configuration,
-        args.step,
-        migratedMigrationIds,
-        migrationTuples,
-        spinner,
-      );
-    } else {
-      await migrateAll(
-        transaction,
-        configuration,
-        migratedMigrationIds,
-        migrationTuples,
-        spinner,
-      );
-    }
-  });
+
+      if (args.toMigrationId) {
+        migrationsMigrated = await migrateTo(
+          transaction,
+          configuration,
+          args.toMigrationId,
+          migratedMigrationIds,
+          migrationTuples,
+          spinner,
+        );
+      } else if (args.step) {
+        migrationsMigrated = await migrateStep(
+          transaction,
+          configuration,
+          args.step,
+          migratedMigrationIds,
+          migrationTuples,
+          spinner,
+        );
+      } else {
+        migrationsMigrated = await migrateAll(
+          transaction,
+          configuration,
+          migratedMigrationIds,
+          migrationTuples,
+          spinner,
+        );
+      }
+    });
+  } catch (error) {
+    spinner.fail('no migrations were migrated due to an error');
+
+    throw error;
+  } finally {
+    await client.disconnect();
+  }
+
+  const finishTimestamp = Date.now();
+  const durationInSecondsString = makeDurationInSecondsString(
+    startTimestamp,
+    finishTimestamp,
+  );
+
+  spinner.succeed(
+    `migrated ${migrationsMigrated} migrations in ${durationInSecondsString} seconds`,
+  );
 }
 
 async function migrateTo(
@@ -97,8 +122,10 @@ async function migrateTo(
   migratedMigrationIds: MigrationId[],
   migrationTuples: MigrationTuple[],
   spinner: Ora,
-): Promise<void> {
+): Promise<number> {
   checkIfMigrationIdIsValid(migrationTuples, toMigrationId);
+
+  let migratedMigrations = 0;
 
   // eslint-disable-next-line fp/no-loops, no-restricted-syntax
   for (const [migrationFilename, migration] of migrationTuples) {
@@ -116,8 +143,12 @@ async function migrateTo(
         migration,
         spinner,
       );
+
+      migratedMigrations += 1;
     }
   }
+
+  return migratedMigrations;
 }
 
 async function migrateStep(
@@ -127,18 +158,14 @@ async function migrateStep(
   migratedMigrationIds: MigrationId[],
   migrationTuples: MigrationTuple[],
   spinner: Ora,
-): Promise<void> {
-  if (step === 0) {
-    return;
-  }
-
+): Promise<number> {
   const notMigratedMigrationIds = getNotMigratedMigrationIds(
     migratedMigrationIds,
     migrationTuples,
   );
 
-  if (notMigratedMigrationIds.length === 0) {
-    return;
+  if (step === 0 || notMigratedMigrationIds.length === 0) {
+    return 0;
   }
 
   const toMigrationId = getArrayElementOrLast(
@@ -146,7 +173,7 @@ async function migrateStep(
     step - 1,
   );
 
-  await migrateTo(
+  return migrateTo(
     transaction,
     configuration,
     toMigrationId,
@@ -162,11 +189,11 @@ async function migrateAll(
   migratedMigrationIds: MigrationId[],
   migrationTuples: MigrationTuple[],
   spinner: Ora,
-): Promise<void> {
+): Promise<number> {
   const [latestMigrationFilename] = migrationTuples[migrationTuples.length - 1];
   const latestMigrationId = getMigrationIdFromFilename(latestMigrationFilename);
 
-  await migrateTo(
+  return migrateTo(
     transaction,
     configuration,
     latestMigrationId,
@@ -186,6 +213,7 @@ async function migrateMigration(
   spinner.start(`migrating ${greenBright(migrationFilename)}`);
 
   const migrationId = getMigrationIdFromFilename(migrationFilename);
+  const startTimestamp = Date.now();
 
   try {
     await migration.migrate(transaction);
@@ -201,5 +229,15 @@ async function migrateMigration(
     throw error;
   }
 
-  spinner.succeed(`${greenBright(migrationFilename)} migrated`);
+  const finishTimestamp = Date.now();
+  const durationInSecondsString = makeDurationInSecondsString(
+    startTimestamp,
+    finishTimestamp,
+  );
+
+  spinner.succeed(
+    `${greenBright(
+      migrationFilename,
+    )} migrated in ${durationInSecondsString} seconds`,
+  );
 }

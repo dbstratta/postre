@@ -58,8 +58,8 @@ export async function getMigratedMigrationIds(
     SELECT id
     FROM ${sql.unsafeRaw(getMigrationTableNameWithSchema(configuration))}
     ORDER BY
-      migrated_at DESC,
-      id DESC
+      migrated_at ASC,
+      id ASC
   `);
 
   const migrationIds = migrationIdStrings.map(migrationIdString =>

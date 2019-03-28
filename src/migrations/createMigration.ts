@@ -12,10 +12,13 @@ import {
   migrationFilenameSeparator,
 } from './constants';
 import { javaScriptMigrationFileTemplate } from './templates';
+import { createMigrationFilesDirectory } from './migrationFiles';
 
 export async function createMigration(migrationName: string): Promise<void> {
   const spinner = ora();
   const configuration = await loadConfiguration(spinner);
+
+  await createMigrationFilesDirectory(configuration, spinner);
 
   const migrationFilename = makeMigrationFilename(migrationName);
 

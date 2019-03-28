@@ -1,3 +1,3 @@
-import { start } from './cli';
+import { run } from './cli';
 
-start();
+run();

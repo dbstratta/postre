@@ -107,3 +107,15 @@ export function isMigrationIdValid(
     .map(([migrationFilename]) => getMigrationIdFromFilename(migrationFilename))
     .includes(migrationId);
 }
+
+export function makeDurationInSecondsString(
+  startTimestamp: number,
+  finishTimestamp: number,
+): string {
+  const durationInSecondsString = (
+    (finishTimestamp - startTimestamp) /
+    1000
+  ).toFixed(2);
+
+  return durationInSecondsString;
+}

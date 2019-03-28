@@ -5,10 +5,16 @@ import { migrate, rollback, createMigration } from '../migrations';
 
 const pkg = require('../../package.json');
 
-export async function start(): Promise<void> {
+export async function run(): Promise<void> {
+  tryOrLogError(async () => {
+    await doRun();
+  });
+}
+
+export async function doRun(): Promise<void> {
   commander
     .name('postre')
-    .description(`postre CLI ${pkg.version}`)
+    .description(`postre ${pkg.version}`)
     .version(pkg.version, '-v, --version');
 
   commander
@@ -32,11 +38,13 @@ export async function start(): Promise<void> {
 
   commander
     .command('migrate')
-    .description('migrate pending migrations')
+    .description(
+      'migrate pending migrations; migrate all pending migrations if no option is provided',
+    )
     .option(
       '--to <migrationId>',
       'migrate all pending migrations up to and including <migrationId>',
-      parseIntegerOption,
+      parseBigintOption,
     )
     .option('--all', 'migrate all pending migrations')
     .option(
@@ -55,8 +63,8 @@ export async function start(): Promise<void> {
     .description('rollback applied migrations')
     .option(
       '--to <migrationId>',
-      'rollback all applied migrations down to and including <migrationId>',
-      parseIntegerOption,
+      'rollback all applied migrations down to and including <migrationId>; rollback 1 applied migration if no option is provided',
+      parseBigintOption,
     )
     .option('--all', 'rollback all applied migrations')
     .option(
@@ -66,18 +74,30 @@ export async function start(): Promise<void> {
     )
     .action(async options => {
       await tryOrLogError(async () => {
-        if (options.to === undefined && options.step === undefined) {
-          commander.help();
+        let step: any;
+
+        if (
+          options.to === undefined &&
+          options.step === undefined &&
+          options.all === undefined
+        ) {
+          step = 1;
+        } else {
+          step = options.step;
         }
 
         await rollback({
           toMigrationId: options.to,
-          step: options.step,
+          step,
         });
       });
     });
 
   commander.parse(process.argv);
+}
+
+function parseBigintOption(value: string): bigint {
+  return BigInt(value);
 }
 
 function parseIntegerOption(value: string): number {
