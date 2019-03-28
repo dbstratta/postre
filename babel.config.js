@@ -5,6 +5,7 @@ module.exports = api => {
     presets: getPresets(),
     plugins: getPlugins(),
     exclude: 'node_modules/**',
+    comments: false,
   };
 };
 
