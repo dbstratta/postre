@@ -51,8 +51,8 @@
     "@commitlint/cli": "7.6.0",
     "@commitlint/config-conventional": "7.6.0",
     "@commitlint/prompt-cli": "7.6.0",
-    "@semantic-release/changelog": "3.0.2",
-    "@semantic-release/git": "7.0.8",
+    "@semantic-release/changelog": "3.0.4",
+    "@semantic-release/git": "7.0.12",
     "@types/cosmiconfig": "5.0.3",
     "@types/debug": "4.1.4",
     "@types/jest": "24.0.13",
@@ -84,7 +84,7 @@
     "prettier": "1.17.1",
     "prettier-eslint": "8.8.2",
     "prettier-eslint-cli": "4.7.1",
-    "semantic-release": "15.13.12",
+    "semantic-release": "15.13.16",
     "typescript": "3.5.1"
   },
   "keywords": [
