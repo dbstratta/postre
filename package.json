@@ -84,7 +84,7 @@
     "prettier": "1.17.1",
     "prettier-eslint": "8.8.2",
     "prettier-eslint-cli": "4.7.1",
-    "semantic-release": "15.13.19",
+    "semantic-release": "15.13.21",
     "typescript": "3.5.3"
   },
   "keywords": [
