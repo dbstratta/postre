@@ -1,10 +1,6 @@
 import * as pg from 'pg';
 
-import {
-  BaseClient,
-  StartTransactionOptions,
-  TransactionFunction,
-} from './BaseClient';
+import { BaseClient, StartTransactionOptions, TransactionFunction } from './BaseClient';
 import { Transaction } from './Transaction';
 import { doInTransaction } from './helpers';
 import { ClientConnectionOptions } from './types';

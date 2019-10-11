@@ -1,13 +1,3 @@
 export { sqlTokens } from './constants';
-export {
-  sql,
-  QueryFragment,
-  QueryObject,
-  QueryValue,
-  InterpolationValue,
-  InterpolationValueKind,
-} from './sql';
-export {
-  makeParametizedQueryString,
-  makeUnsafeRawQueryString,
-} from './queryStrings';
+export { sql, SqlFragment, SqlObject, SqlValue } from './sql';
+export { makeParameterizedQuery, QueryString, QueryValue } from './queryStrings';

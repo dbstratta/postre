@@ -20,9 +20,7 @@ export type TransactionConfig = {
   releaseWhenFinished: boolean;
 };
 
-export class Transaction<
-  TClient extends Client | PoolClient
-> extends BaseClient {
+export class Transaction<TClient extends Client | PoolClient> extends BaseClient {
   public config: TransactionConfig;
 
   public readonly client: TClient;
@@ -33,9 +31,7 @@ export class Transaction<
     this.config = {
       isolationLevel: options.isolationLevel,
       releaseWhenFinished:
-        options.releaseWhenFinished === undefined
-          ? true
-          : options.releaseWhenFinished,
+        options.releaseWhenFinished === undefined ? true : options.releaseWhenFinished,
     };
 
     this.client = options.client;
@@ -101,9 +97,7 @@ export class Transaction<
    * for more information.
    */
   public async rollbackToSavepoint(savepointName: string): Promise<void> {
-    await this.query(
-      sql`ROLLBACK TO SAVEPOINT ${sql.unsafeRaw(savepointName)}`,
-    );
+    await this.query(sql`ROLLBACK TO SAVEPOINT ${sql.unsafeRaw(savepointName)}`);
   }
 
   /**

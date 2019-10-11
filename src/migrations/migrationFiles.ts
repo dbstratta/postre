@@ -16,9 +16,7 @@ export type Migration = {
   rollback: MigrationFunction;
 };
 
-export type MigrationFunction = (
-  client: Client | Transaction<Client>,
-) => Promise<void>;
+export type MigrationFunction = (client: Client | Transaction<Client>) => Promise<void>;
 
 export async function findAndImportAllMigrations(
   configuration: MigrationConfiguration,
@@ -26,25 +24,16 @@ export async function findAndImportAllMigrations(
 ): Promise<MigrationTuple[]> {
   const migrationFilenames = await getMigrationFilenames(configuration);
 
-  const migrationTuples = await importAllMigrations(
-    migrationFilenames,
-    configuration,
-    spinner,
-  );
+  const migrationTuples = await importAllMigrations(migrationFilenames, configuration, spinner);
 
   return migrationTuples;
 }
 
-async function getMigrationFilenames(
-  configuration: MigrationConfiguration,
-): Promise<string[]> {
-  const dirEntities: Dirent[] = await fs.readdir(
-    configuration.migrationFilesDirectoryPath,
-    // @ts-ignore
-    { withFileTypes: true },
-  );
+async function getMigrationFilenames(configuration: MigrationConfiguration): Promise<string[]> {
+  const dirEntities: Dirent[] = await fs.readdir(configuration.migrationFilesDirectoryPath, {
+    withFileTypes: true,
+  });
 
-  // eslint-disable-next-line fp/no-mutating-methods
   const filenames = dirEntities
     .filter(dirEntity => dirEntity.isFile())
     .map(dirEntity => dirEntity.name)
@@ -69,10 +58,7 @@ async function importAllMigrations(
           [
             migrationFilename,
             await importMigration(
-              path.resolve(
-                configuration.migrationFilesDirectoryPath,
-                migrationFilename,
-              ),
+              path.resolve(configuration.migrationFilesDirectoryPath, migrationFilename),
             ),
           ] as MigrationTuple,
       ),
@@ -88,9 +74,7 @@ async function importAllMigrations(
   return migrationTuples;
 }
 
-export async function importMigration(
-  migrationFilename: MigrationFilename,
-): Promise<Migration> {
+export async function importMigration(migrationFilename: MigrationFilename): Promise<Migration> {
   const migration = await import(migrationFilename);
 
   validateMigration(migrationFilename, migration);

@@ -1,10 +1,6 @@
 import * as pg from 'pg';
 
-import {
-  BaseClient,
-  StartTransactionOptions,
-  TransactionFunction,
-} from './BaseClient';
+import { BaseClient, StartTransactionOptions, TransactionFunction } from './BaseClient';
 import { PoolClient } from './PoolClient';
 import { Transaction } from './Transaction';
 import { ClientConnectionOptions } from './types';
@@ -84,8 +80,6 @@ export class Pool extends BaseClient {
       const result = poolClient.doInTransaction(transactionFunction, options);
 
       return result;
-    } catch (error) {
-      throw error;
     } finally {
       await poolClient.release();
     }

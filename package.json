@@ -18,7 +18,7 @@
     "build-types": "tsc --emitDeclarationOnly",
     "prebuild": "yarn clean-dist",
     "clean-dist": "rimraf dist",
-    "typecheck": "tsc --noEmit",
+    "tsc": "tsc --noEmit",
     "lint": "yarn lint:check",
     "lint:check": "eslint \"src/**/*.{js,ts}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,ts}\"",
@@ -32,15 +32,15 @@
     "semantic-release": "semantic-release"
   },
   "dependencies": {
-    "@types/pg": "^7.4.14",
-    "colorette": "^1.0.7",
-    "commander": "^2.19.0",
-    "cosmiconfig": "^5.2.0",
-    "debug": "^4.1.1",
-    "ora": "^3.2.0"
+    "@types/pg": "7.11.1",
+    "colorette": "1.1.0",
+    "commander": "3.0.1",
+    "cosmiconfig": "5.2.1",
+    "debug": "4.1.1",
+    "ora": "3.4.0"
   },
   "peerDependencies": {
-    "pg": "^7.9.0"
+    "pg": "^7.12.1"
   },
   "devDependencies": {
     "@babel/cli": "7.6.0",
@@ -48,44 +48,40 @@
     "@babel/plugin-proposal-class-properties": "7.5.5",
     "@babel/preset-env": "7.6.0",
     "@babel/preset-typescript": "7.6.0",
-    "@commitlint/cli": "7.6.1",
-    "@commitlint/config-conventional": "7.6.0",
-    "@commitlint/prompt-cli": "7.6.1",
+    "@commitlint/cli": "8.1.0",
+    "@commitlint/config-conventional": "8.1.0",
+    "@commitlint/prompt-cli": "8.1.0",
     "@semantic-release/changelog": "3.0.4",
     "@semantic-release/git": "7.0.16",
     "@types/cosmiconfig": "5.0.3",
     "@types/debug": "4.1.5",
     "@types/jest": "24.0.18",
-    "@types/node": "11.13.19",
-    "@typescript-eslint/eslint-plugin": "1.7.0",
-    "@typescript-eslint/parser": "1.7.0",
+    "@types/node": "12.7.4",
+    "@typescript-eslint/eslint-plugin": "2.1.0",
+    "@typescript-eslint/parser": "2.1.0",
     "babel-eslint": "10.0.3",
     "babel-jest": "24.9.0",
     "babel-plugin-dynamic-import-node": "2.3.0",
     "codecov": "3.5.0",
-    "cross-env": "5.2.0",
-    "danger": "7.1.4",
-    "eslint": "5.16.0",
-    "eslint-config-airbnb-base": "13.2.0",
-    "eslint-config-prettier": "4.3.0",
+    "cross-env": "5.2.1",
+    "danger": "9.1.8",
+    "eslint": "6.3.0",
+    "eslint-config-airbnb-base": "14.0.0",
+    "eslint-config-prettier": "6.2.0",
     "eslint-plugin-eslint-comments": "3.1.2",
-    "eslint-plugin-fp": "2.3.0",
     "eslint-plugin-import": "2.18.2",
     "eslint-plugin-jest": "22.17.0",
-    "eslint-plugin-node": "8.0.1",
+    "eslint-plugin-node": "10.0.0",
     "eslint-plugin-prettier": "3.1.0",
     "eslint-plugin-promise": "4.2.1",
-    "eslint-plugin-unicorn": "7.1.0",
-    "husky": "1.3.1",
+    "eslint-plugin-unicorn": "10.0.0",
+    "husky": "3.0.5",
     "jest": "24.9.0",
-    "lint-staged": "8.2.1",
-    "mkdirp": "0.5.1",
+    "lint-staged": "9.2.5",
     "pg": "7.12.1",
-    "prettier": "1.17.1",
-    "prettier-eslint": "8.8.2",
-    "prettier-eslint-cli": "4.7.1",
+    "prettier": "1.18.2",
     "semantic-release": "15.13.24",
-    "typescript": "3.5.3"
+    "typescript": "3.6.2"
   },
   "keywords": [
     "postgres",
@@ -107,6 +103,6 @@
     "url": "https://github.com/strattadb/postre/issues"
   },
   "engines": {
-    "node": ">= 11.10.0"
+    "node": ">= 12.10.0"
   }
 }

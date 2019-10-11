@@ -7,6 +7,7 @@ module.exports = {
     ecmaVersion: 2019,
     sourceType: 'module',
     project: './tsconfig.json',
+    tsconfigRootDir: './',
     ecmaFeatures: {
       jsx: true,
     },
@@ -19,7 +20,6 @@ module.exports = {
     'jest',
     'import',
     '@typescript-eslint',
-    'fp',
     'eslint-comments',
     'prettier',
   ],
@@ -40,15 +40,16 @@ module.exports = {
     'airbnb-base',
     'plugin:@typescript-eslint/recommended',
     'plugin:eslint-comments/recommended',
-    'plugin:fp/recommended',
     'prettier',
   ],
 
   rules: {
     'no-use-before-define': 'off',
+    'no-restricted-syntax': 'off',
     'no-console': 'off',
 
     'unicorn/filename-case': 'off',
+    'unicorn/prevent-abbreviations': 'off',
     'unicorn/no-process-exit': 'off',
 
     'import/no-named-as-default': 'off',
@@ -61,21 +62,20 @@ module.exports = {
     'node/no-unsupported-features/es-syntax': 'off',
     'node/no-unsupported-features/node-builtins': 'off',
     'node/no-unpublished-require': 'off',
+    'node/no-missing-import': [
+      'error',
+      {
+        tryExtensions: ['.js', '.ts', '.node'],
+      },
+    ],
 
     'promise/valid-params': 'off',
-
-    'fp/no-mutation': 'off',
-    'fp/no-throw': 'off',
-    'fp/no-nil': 'off',
-    'fp/no-let': 'off',
-    'fp/no-unused-expression': 'off',
-    'fp/no-rest-parameters': 'off',
-    'fp/no-this': 'off',
-    'fp/no-class': 'off',
 
     '@typescript-eslint/indent': 'off',
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
+
+    'jest/valid-describe': 'off',
   },
 
   settings: {
@@ -100,10 +100,7 @@ module.exports = {
 
         'import/export': 'off',
 
-        '@typescript-eslint/generic-type-naming': [
-          'error',
-          '^T[A-Z][a-zA-Z]+$',
-        ],
+        '@typescript-eslint/generic-type-naming': ['error', '^T[A-Z][a-zA-Z]+$'],
         '@typescript-eslint/no-this-alias': 'error',
         '@typescript-eslint/restrict-plus-operands': 'error',
         '@typescript-eslint/prefer-interface': 'off',

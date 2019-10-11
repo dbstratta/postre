@@ -7,10 +7,10 @@ export type AllFirstQueryOptions = {};
 
 export const allFirst: Executor<any[], AllFirstQueryOptions> = async (
   client,
-  queryObject,
+  sqlObject,
   options,
 ) => {
-  const result = await query(client, queryObject, {
+  const result = await query(client, sqlObject, {
     ...options,
     rowMode: RowMode.Array,
   });
@@ -25,5 +25,3 @@ export const allFirst: Executor<any[], AllFirstQueryOptions> = async (
 
   return values;
 };
-
-export default allFirst;

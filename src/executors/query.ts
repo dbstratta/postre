@@ -1,14 +1,12 @@
-import { makeParametizedQueryString } from '../queryBuilders';
+import { makeParameterizedQuery } from '../queryBuilders';
 
 import { Executor } from './executor';
 
-export type QueryResult = {
-  rows: Row[];
+export type QueryResult<TRow = any> = {
+  rows: TRow[];
   rowCount: number;
   fields: FieldInfo[];
 };
-
-export type Row = any;
 
 export type FieldInfo = {
   name: string;
@@ -23,18 +21,13 @@ export enum RowMode {
   Object = 'object',
 }
 
-export const query: Executor<QueryResult> = async (
-  client,
-  queryObject,
-  options = {},
-) => {
-  const queryString = makeParametizedQueryString(queryObject);
+export const query: Executor<QueryResult> = async (client, sqlObjecty, options = {}) => {
+  const [queryString, values] = makeParameterizedQuery(sqlObjecty);
 
   const rawResult = await client.query({
     text: queryString,
-    values: queryObject.values,
-    // @ts-ignore
-    rowMode: options.rowMode === RowMode.Array ? 'array' : undefined,
+    values,
+    rowMode: options.rowMode === RowMode.Array ? 'array' : (undefined as any),
   });
 
   const result: QueryResult = {
@@ -45,5 +38,3 @@ export const query: Executor<QueryResult> = async (
 
   return result;
 };
-
-export default query;

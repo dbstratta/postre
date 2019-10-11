@@ -5,6 +5,9 @@ import { migrate, rollback, createMigration } from '../migrations';
 
 const pkg = require('../../package.json');
 
+const cliName = 'postre';
+const cliVersion = pkg.version;
+
 export async function run(): Promise<void> {
   tryOrLogError(async () => {
     await doRun();
@@ -13,9 +16,9 @@ export async function run(): Promise<void> {
 
 export async function doRun(): Promise<void> {
   commander
-    .name('postre')
-    .description(`postre ${pkg.version}`)
-    .version(pkg.version, '-v, --version');
+    .name(cliName)
+    .description(`${cliName} ${cliVersion}`)
+    .version(cliVersion, '-v, --version');
 
   commander
     .command('initialize [directoryPath]')
@@ -47,11 +50,7 @@ export async function doRun(): Promise<void> {
       parseBigintOption,
     )
     .option('--all', 'migrate all pending migrations')
-    .option(
-      '-n, --step <n>',
-      'migrate <n> pending migrations',
-      parseIntegerOption,
-    )
+    .option('-n, --step <n>', 'migrate <n> pending migrations', parseIntegerOption)
     .action(async options => {
       await tryOrLogError(async () => {
         await migrate({ toMigrationId: options.to, step: options.step });
@@ -67,20 +66,12 @@ export async function doRun(): Promise<void> {
       parseBigintOption,
     )
     .option('--all', 'rollback all applied migrations')
-    .option(
-      '-n, --step <n>',
-      'rollback <n> applied migrations',
-      parseIntegerOption,
-    )
+    .option('-n, --step <n>', 'rollback <n> applied migrations', parseIntegerOption)
     .action(async options => {
       await tryOrLogError(async () => {
         let step: any;
 
-        if (
-          options.to === undefined &&
-          options.step === undefined &&
-          options.all === undefined
-        ) {
+        if (options.to === undefined && options.step === undefined && options.all === undefined) {
           step = 1;
         } else {
           step = options.step;

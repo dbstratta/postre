@@ -1,18 +1,18 @@
 import { postreSymbol } from './constants';
-import { InterpolationValueKind } from './sql';
+import { ObjectKind } from './types';
 
-export type UnsafeRawQueryObject = {
+export type UnsafeRawObject = {
   unsafeString: string;
-  kind: InterpolationValueKind.UnsafeRawQuery;
+  kind: ObjectKind.UnsafeRaw;
   [postreSymbol]: true;
 };
 
-export function unsafeRaw(unsafeString: string): UnsafeRawQueryObject {
-  const unsafeRawQuery: UnsafeRawQueryObject = {
-    kind: InterpolationValueKind.UnsafeRawQuery,
+export function unsafeRaw(unsafeString: string): UnsafeRawObject {
+  const unsafeRaw: UnsafeRawObject = {
+    kind: ObjectKind.UnsafeRaw,
     unsafeString,
     [postreSymbol]: true,
   };
 
-  return unsafeRawQuery;
+  return unsafeRaw;
 }

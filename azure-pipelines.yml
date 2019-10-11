@@ -13,8 +13,8 @@ steps:
   - script: yarn lint:check
     displayName: 'Linter check'
 
-  - script: yarn typecheck
-    displayName: 'Typecheck'
+  - script: yarn check-types
+    displayName: 'Type check'
 
   - script: yarn test:ci
     displayName: 'Test'

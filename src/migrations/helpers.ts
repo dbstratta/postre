@@ -6,19 +6,13 @@ import { MigrationFilename, MigrationId } from './types';
 import { migrationFilenameSeparator } from './constants';
 import { MigrationTuple } from './migrationFiles';
 
-export function getMigrationIdFromFilename(
-  migrationFilename: MigrationFilename,
-): MigrationId {
-  const migrationId = BigInt(
-    migrationFilename.split(migrationFilenameSeparator)[0],
-  );
+export function getMigrationIdFromFilename(migrationFilename: MigrationFilename): MigrationId {
+  const migrationId = BigInt(migrationFilename.split(migrationFilenameSeparator)[0]);
 
   return migrationId;
 }
 
-export async function setupClient(
-  configuration: MigrationConfiguration,
-): Promise<Client> {
+export async function setupClient(configuration: MigrationConfiguration): Promise<Client> {
   let clientOptions: ClientOptions;
 
   if (configuration.databaseConnectionString !== undefined) {
@@ -42,12 +36,8 @@ export async function setupClient(
   return client;
 }
 
-export function getMigrationTableNameWithSchema(
-  configuration: MigrationConfiguration,
-): string {
-  return `"${configuration.migrationsTableSchema}"."${
-    configuration.migrationsTableName
-  }"`;
+export function getMigrationTableNameWithSchema(configuration: MigrationConfiguration): string {
+  return `"${configuration.migrationsTableSchema}"."${configuration.migrationsTableName}"`;
 }
 
 export function hasMigrationBeenMigrated(
@@ -68,10 +58,7 @@ export function getNotMigratedMigrationIds(
   return notMigratedMigrationIds;
 }
 
-export function getArrayElementOrLast<TElement>(
-  array: TElement[],
-  index: number,
-): TElement {
+export function getArrayElementOrLast<TElement>(array: TElement[], index: number): TElement {
   if (index >= array.length) {
     return array[array.length - 1];
   }
@@ -79,10 +66,7 @@ export function getArrayElementOrLast<TElement>(
   return array[index];
 }
 
-export function getArrayElementOrFirst<TElement>(
-  array: TElement[],
-  index: number,
-): TElement {
+export function getArrayElementOrFirst<TElement>(array: TElement[], index: number): TElement {
   if (index < 0) {
     return array[0];
   }
@@ -112,10 +96,7 @@ export function makeDurationInSecondsString(
   startTimestamp: number,
   finishTimestamp: number,
 ): string {
-  const durationInSecondsString = (
-    (finishTimestamp - startTimestamp) /
-    1000
-  ).toFixed(2);
+  const durationInSecondsString = ((finishTimestamp - startTimestamp) / 1000).toFixed(2);
 
   return durationInSecondsString;
 }

@@ -23,9 +23,7 @@ export type MigrationConfiguration = {
   migrationsTableSchema: string;
 } & ClientConnectionOptions;
 
-export async function loadConfiguration(
-  spinner: Ora,
-): Promise<MigrationConfiguration> {
+export async function loadConfiguration(spinner: Ora): Promise<MigrationConfiguration> {
   spinner.start('Searching postre configuration file');
 
   let result: cosmiconfig.CosmiconfigResult;
@@ -45,14 +43,9 @@ export async function loadConfiguration(
   }
 
   const migrationConfiguration: MigrationConfiguration = {
-    migrationFilesDirectoryPath: makeMigrationFilesDirectoryPath(
-      result.config,
-      result.filepath,
-    ),
-    migrationsTableName:
-      result.config.migrationsTableName || defaultMigrationsTableName,
-    migrationsTableSchema:
-      result.config.migrationsTableSchema || defaultMigrationsTableSchema,
+    migrationFilesDirectoryPath: makeMigrationFilesDirectoryPath(result.config, result.filepath),
+    migrationsTableName: result.config.migrationsTableName || defaultMigrationsTableName,
+    migrationsTableSchema: result.config.migrationsTableSchema || defaultMigrationsTableSchema,
     databaseHost: result.config.databaseHost,
     databasePort: result.config.databasePort,
     databaseName: result.config.databaseName,
@@ -83,10 +76,7 @@ function makeMigrationFilesDirectoryPath(
   const migrationFilesDirectoryPath =
     cosmiconfigConfig.migrationFilesDirectoryPath || './migrations';
 
-  return path.resolve(
-    path.dirname(cosmiconfigFilepath),
-    migrationFilesDirectoryPath,
-  );
+  return path.resolve(path.dirname(cosmiconfigFilepath), migrationFilesDirectoryPath);
 }
 
 export type InitializeArgs = {

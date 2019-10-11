@@ -6,12 +6,8 @@ import { RowMode } from './query';
 
 export type OneFirstQueryOptions = {};
 
-export const oneFirst: Executor<any, OneFirstQueryOptions> = async (
-  client,
-  queryObject,
-  options,
-) => {
-  const arrayRow = await one(client, queryObject, {
+export const oneFirst: Executor<any, OneFirstQueryOptions> = async (client, sqlObject, options) => {
+  const arrayRow = await one(client, sqlObject, {
     ...options,
     rowMode: RowMode.Array,
   });
@@ -24,5 +20,3 @@ export const oneFirst: Executor<any, OneFirstQueryOptions> = async (
 
   return value;
 };
-
-export default one;

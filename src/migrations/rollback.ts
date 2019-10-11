@@ -46,10 +46,7 @@ export async function rollback(args: RollbackArgs): Promise<void> {
 
   await createMigrationFilesDirectory(configuration, spinner);
 
-  const migrationTuples = await findAndImportAllMigrations(
-    configuration,
-    spinner,
-  );
+  const migrationTuples = await findAndImportAllMigrations(configuration, spinner);
 
   const client = await setupClient(configuration);
 
@@ -62,10 +59,7 @@ export async function rollback(args: RollbackArgs): Promise<void> {
     await client.doInTransaction(async transaction => {
       await lockMigrationsTable(transaction, configuration);
 
-      const migratedMigrationIds = await getMigratedMigrationIds(
-        transaction,
-        configuration,
-      );
+      const migratedMigrationIds = await getMigratedMigrationIds(transaction, configuration);
 
       if (args.toMigrationId) {
         rollbackedMigrations = await rollbackTo(
@@ -104,10 +98,7 @@ export async function rollback(args: RollbackArgs): Promise<void> {
   }
 
   const finishTimestamp = Date.now();
-  const durationInSecondsString = makeDurationInSecondsString(
-    startTimestamp,
-    finishTimestamp,
-  );
+  const durationInSecondsString = makeDurationInSecondsString(startTimestamp, finishTimestamp);
 
   spinner.succeed(
     `rollbacked ${rollbackedMigrations} migrations in ${durationInSecondsString} seconds`,
@@ -125,10 +116,8 @@ async function rollbackTo(
   checkIfMigrationIdIsValid(migrationTuples, toMigrationId);
 
   let rollbackedMigrations = 0;
-  // eslint-disable-next-line fp/no-mutating-methods
   const reversedMigrationTuples = [...migrationTuples].reverse();
 
-  // eslint-disable-next-line fp/no-loops, no-restricted-syntax
   for (const [migrationFilename, migration] of reversedMigrationTuples) {
     const migrationId = getMigrationIdFromFilename(migrationFilename);
 
@@ -137,13 +126,7 @@ async function rollbackTo(
       hasMigrationBeenMigrated(migratedMigrationIds, migrationId)
     ) {
       // eslint-disable-next-line no-await-in-loop
-      await rollbackMigration(
-        transaction,
-        configuration,
-        migrationFilename,
-        migration,
-        spinner,
-      );
+      await rollbackMigration(transaction, configuration, migrationFilename, migration, spinner);
 
       rollbackedMigrations += 1;
     }
@@ -214,11 +197,7 @@ async function rollbackMigration(
   try {
     await migration.rollback(transaction);
 
-    await deleteFromSchemaMigrationsTable(
-      transaction,
-      configuration,
-      migrationId,
-    );
+    await deleteFromSchemaMigrationsTable(transaction, configuration, migrationId);
   } catch (error) {
     spinner.fail(`${redBright(migrationFilename)} failed to rollback`);
 
@@ -226,14 +205,9 @@ async function rollbackMigration(
   }
 
   const finishTimestamp = Date.now();
-  const durationInSecondsString = makeDurationInSecondsString(
-    startTimestamp,
-    finishTimestamp,
-  );
+  const durationInSecondsString = makeDurationInSecondsString(startTimestamp, finishTimestamp);
 
   spinner.succeed(
-    `${greenBright(
-      migrationFilename,
-    )} rollbacked in ${durationInSecondsString} seconds`,
+    `${greenBright(migrationFilename)} rollbacked in ${durationInSecondsString} seconds`,
   );
 }

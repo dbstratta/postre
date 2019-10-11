@@ -1,6 +1,1 @@
-export {
-  loadConfiguration,
-  initialize,
-  InitializeArgs,
-  MigrationConfiguration,
-} from './config';
+export { loadConfiguration, initialize, InitializeArgs, MigrationConfiguration } from './config';

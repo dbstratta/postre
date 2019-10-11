@@ -1,58 +1,71 @@
 import * as pg from 'pg';
 
-import { QueryObject } from '../queryBuilders';
+import { SqlObject } from '../queryBuilders';
 import * as executors from '../executors';
 
 import { Transaction } from './Transaction';
 
+// prettier-ignore
 export abstract class BaseClient {
   public abstract getPgClient(): pg.Pool | pg.PoolClient | pg.Client;
 
   public oneFirst(
-    queryObject: QueryObject,
+    sqlObject: SqlObject,
     options?: executors.OneFirstQueryOptions,
   ): ReturnType<typeof executors.oneFirst> {
-    return executors.oneFirst(this.getPgClient(), queryObject, options);
+    return executors.oneFirst(this.getPgClient(), sqlObject, options);
   }
 
   public one(
-    queryObject: QueryObject,
+    sqlObject: SqlObject,
     options?: executors.QueryOptions,
   ): ReturnType<typeof executors.one> {
-    return executors.one(this.getPgClient(), queryObject, options);
+    return executors.one(this.getPgClient(), sqlObject, options);
   }
 
   public maybeOne(
-    queryObject: QueryObject,
+    sqlObject: SqlObject,
     options?: executors.QueryOptions,
   ): ReturnType<typeof executors.maybeOne> {
-    return executors.maybeOne(this.getPgClient(), queryObject, options);
+    return executors.maybeOne(this.getPgClient(), sqlObject, options);
   }
 
   public all(
-    queryObject: QueryObject,
+    sqlObject: SqlObject,
     options?: executors.QueryOptions,
   ): ReturnType<typeof executors.all> {
-    return executors.all(this.getPgClient(), queryObject, options);
+    return executors.all(this.getPgClient(), sqlObject, options);
   }
 
   public query(
-    queryObject: QueryObject,
+    sqlObject: SqlObject,
     options?: executors.QueryOptions,
   ): ReturnType<typeof executors.query> {
-    return executors.query(this.getPgClient(), queryObject, options);
+    return executors.query(this.getPgClient(), sqlObject, options);
   }
 
   public allFirst(
-    queryObject: QueryObject,
+    sqlObject: SqlObject,
     options?: executors.AllFirstQueryOptions,
   ): ReturnType<typeof executors.allFirst> {
-    return executors.allFirst(this.getPgClient(), queryObject, options);
+    return executors.allFirst(this.getPgClient(), sqlObject, options);
   }
 
-  public abstract startTransaction(
-    options?: StartTransactionOptions,
-  ): Promise<BaseClient>;
+  public many(
+    sqlObject: SqlObject,
+    options?: executors.QueryOptions,
+  ): ReturnType<typeof executors.many> {
+    return executors.many(this.getPgClient(), sqlObject, options);
+  }
+
+  public manyFirst(
+    sqlObject: SqlObject,
+    options?: executors.ManyFirstQueryOptions,
+  ): ReturnType<typeof executors.manyFirst> {
+    return executors.manyFirst(this.getPgClient(), sqlObject, options);
+  }
+
+  public abstract startTransaction(options?: StartTransactionOptions): Promise<BaseClient>;
 
   public abstract doInTransaction<TReturn>(
     transactionFunction: TransactionFunction<TReturn>,
@@ -64,15 +77,11 @@ export type StartTransactionOptions = {
   isolationLevel?: TransactionIsolationLevel;
 };
 
-export type TransactionFunction<TReturn> = (
-  transaction: Transaction<any>,
-) => Promise<TReturn>;
+export type TransactionFunction<TReturn> = (transaction: Transaction<any>) => Promise<TReturn>;
 
-// TODO: replace string literals for the ones in `sqlTokens` when TS reaches 3.4
-// as we'll be able to use `as const` on it.
 export enum TransactionIsolationLevel {
   Serializable = 'SERIALIZABLE',
-  RepeatableRead = 'REPEATABLE',
+  RepeatableRead = 'REPEATABLE READ',
   ReadCommitted = 'READ COMMITTED',
   ReadUncommitted = 'READ UNCOMMITTED',
 }

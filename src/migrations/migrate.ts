@@ -47,10 +47,7 @@ export async function migrate(args: MigrateArgs): Promise<void> {
 
   await createMigrationFilesDirectory(configuration, spinner);
 
-  const migrationTuples = await findAndImportAllMigrations(
-    configuration,
-    spinner,
-  );
+  const migrationTuples = await findAndImportAllMigrations(configuration, spinner);
 
   const client = await setupClient(configuration);
 
@@ -63,10 +60,7 @@ export async function migrate(args: MigrateArgs): Promise<void> {
     await client.doInTransaction(async transaction => {
       await lockMigrationsTable(transaction, configuration);
 
-      const migratedMigrationIds = await getMigratedMigrationIds(
-        transaction,
-        configuration,
-      );
+      const migratedMigrationIds = await getMigratedMigrationIds(transaction, configuration);
 
       if (args.toMigrationId) {
         migrationsMigrated = await migrateTo(
@@ -105,10 +99,7 @@ export async function migrate(args: MigrateArgs): Promise<void> {
   }
 
   const finishTimestamp = Date.now();
-  const durationInSecondsString = makeDurationInSecondsString(
-    startTimestamp,
-    finishTimestamp,
-  );
+  const durationInSecondsString = makeDurationInSecondsString(startTimestamp, finishTimestamp);
 
   spinner.succeed(
     `migrated ${migrationsMigrated} migrations in ${durationInSecondsString} seconds`,
@@ -127,7 +118,6 @@ async function migrateTo(
 
   let migratedMigrations = 0;
 
-  // eslint-disable-next-line fp/no-loops, no-restricted-syntax
   for (const [migrationFilename, migration] of migrationTuples) {
     const migrationId = getMigrationIdFromFilename(migrationFilename);
 
@@ -136,13 +126,7 @@ async function migrateTo(
       !hasMigrationBeenMigrated(migratedMigrationIds, migrationId)
     ) {
       // eslint-disable-next-line no-await-in-loop
-      await migrateMigration(
-        transaction,
-        configuration,
-        migrationFilename,
-        migration,
-        spinner,
-      );
+      await migrateMigration(transaction, configuration, migrationFilename, migration, spinner);
 
       migratedMigrations += 1;
     }
@@ -159,19 +143,13 @@ async function migrateStep(
   migrationTuples: MigrationTuple[],
   spinner: Ora,
 ): Promise<number> {
-  const notMigratedMigrationIds = getNotMigratedMigrationIds(
-    migratedMigrationIds,
-    migrationTuples,
-  );
+  const notMigratedMigrationIds = getNotMigratedMigrationIds(migratedMigrationIds, migrationTuples);
 
   if (step === 0 || notMigratedMigrationIds.length === 0) {
     return 0;
   }
 
-  const toMigrationId = getArrayElementOrLast(
-    notMigratedMigrationIds,
-    step - 1,
-  );
+  const toMigrationId = getArrayElementOrLast(notMigratedMigrationIds, step - 1);
 
   return migrateTo(
     transaction,
@@ -218,11 +196,7 @@ async function migrateMigration(
   try {
     await migration.migrate(transaction);
 
-    await insertIntoSchemaMigrationsTable(
-      transaction,
-      configuration,
-      migrationId,
-    );
+    await insertIntoSchemaMigrationsTable(transaction, configuration, migrationId);
   } catch (error) {
     spinner.fail(`${redBright(migrationFilename)} failed to migrate`);
 
@@ -230,14 +204,9 @@ async function migrateMigration(
   }
 
   const finishTimestamp = Date.now();
-  const durationInSecondsString = makeDurationInSecondsString(
-    startTimestamp,
-    finishTimestamp,
-  );
+  const durationInSecondsString = makeDurationInSecondsString(startTimestamp, finishTimestamp);
 
   spinner.succeed(
-    `${greenBright(
-      migrationFilename,
-    )} migrated in ${durationInSecondsString} seconds`,
+    `${greenBright(migrationFilename)} migrated in ${durationInSecondsString} seconds`,
   );
 }

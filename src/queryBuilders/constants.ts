@@ -5,8 +5,7 @@ export const sqlTokens = {
   true: 'TRUE',
   false: 'FALSE',
   null: 'NULL',
-  serializable: 'SERIALIZABLE',
-  repeatableRead: 'REPEATABLE READ',
-  readCommitted: 'READ COMMITTED',
-  readUncommitted: 'READ UNCOMMITTED',
-};
+  and: 'AND',
+  or: 'OR',
+  assignmentOperator: '=',
+} as const;

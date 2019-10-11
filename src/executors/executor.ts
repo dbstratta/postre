@@ -1,11 +1,11 @@
 import * as pg from 'pg';
 
-import { QueryObject } from '../queryBuilders';
+import { SqlObject } from '../queryBuilders';
 
 import { QueryOptions } from './query';
 
 export type Executor<TReturn, TOptions = QueryOptions> = (
   client: pg.Pool | pg.PoolClient | pg.Client,
-  queryObject: QueryObject,
+  sqlObject: SqlObject,
   options?: TOptions,
 ) => Promise<TReturn>;
