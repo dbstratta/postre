@@ -37,7 +37,7 @@
     "commander": "3.0.2",
     "cosmiconfig": "5.2.1",
     "debug": "4.1.1",
-    "ora": "4.0.2"
+    "ora": "4.0.3"
   },
   "peerDependencies": {
     "pg": "^7.12.1"
