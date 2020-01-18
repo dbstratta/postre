@@ -81,7 +81,7 @@
     "pg": "7.12.1",
     "prettier": "1.18.2",
     "semantic-release": "15.13.24",
-    "typescript": "3.6.4"
+    "typescript": "3.7.5"
   },
   "keywords": [
     "postgres",
