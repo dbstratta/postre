@@ -1,4 +1,26 @@
-export { sql, QueryString, QueryValue, makeParameterizedQuery } from './queryBuilders';
+export {
+  sql,
+  QueryString,
+  QueryValue,
+  makeParameterizedQuery,
+  SqlObject,
+  JoinObject,
+  JoinSeparator,
+  AndObject,
+  AssignmentsInput,
+  AssignmentsObject,
+  AssignmentsRecord,
+  ObjectKind,
+  OrObject,
+  IdentifierObject,
+  JoinValue,
+  LogicCondition,
+  PostreObject,
+  PrimitiveType,
+  SqlFragment,
+  SqlValue,
+  UnsafeRawObject,
+} from './queryBuilders';
 export {
   Client,
   Pool,
@@ -14,4 +36,10 @@ export {
   BaseClient,
 } from './clients';
 export { createClient, createPool } from './factories';
-export { PostreError, NoRowsError, MultipleRowsError } from './errors';
+export {
+  PostreError,
+  NoRowsError,
+  MultipleRowsError,
+  MigrationError,
+  MultipleColumnsError,
+} from './errors';

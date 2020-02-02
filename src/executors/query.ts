@@ -1,8 +1,9 @@
-import { makeParameterizedQuery } from '../queryBuilders';
+import { makeParameterizedQuery, SqlObject, QueryValue, QueryString } from '../queryBuilders';
+import { BaseClient } from '../clients';
 
-import { Executor } from './executor';
+import { ExecutorOptions, RowMode, ExecutorLogging } from './types';
 
-export type QueryResult<TRow = any> = {
+export type QueryResult<TRow> = {
   rows: TRow[];
   rowCount: number;
   fields: FieldInfo[];
@@ -12,29 +13,36 @@ export type FieldInfo = {
   name: string;
 };
 
-export type QueryOptions = {
-  rowMode?: RowMode;
-};
+export async function query<TResult>(
+  client: BaseClient,
+  sqlObject: SqlObject,
+  options: ExecutorOptions = {},
+): Promise<QueryResult<TResult>> {
+  const [queryString, values] = makeParameterizedQuery(sqlObject);
 
-export enum RowMode {
-  Array = 'array',
-  Object = 'object',
-}
+  maybeLog(queryString, values, options.logging);
 
-export const query: Executor<QueryResult> = async (client, sqlObjecty, options = {}) => {
-  const [queryString, values] = makeParameterizedQuery(sqlObjecty);
-
-  const rawResult = await client.query({
+  const rawResult = await client.getPgClient().query({
     text: queryString,
     values,
-    rowMode: options.rowMode === RowMode.Array ? 'array' : (undefined as any),
+    rowMode: options.rowMode === RowMode.Array ? RowMode.Array : (undefined as any),
   });
 
-  const result: QueryResult = {
-    rows: rawResult.rows,
+  const result: QueryResult<TResult> = {
+    rows: rawResult.rows as any,
     rowCount: rawResult.rowCount,
     fields: rawResult.fields,
   };
 
   return result;
-};
+}
+
+function maybeLog(
+  queryString: QueryString,
+  queryValues: QueryValue[],
+  logging: ExecutorLogging,
+): void {
+  if (typeof logging === 'function') {
+    logging(queryString, queryValues);
+  }
+}

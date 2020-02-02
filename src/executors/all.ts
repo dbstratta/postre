@@ -1,10 +1,17 @@
-import { Executor } from './executor';
-import { query } from './query';
+import { SqlObject } from '../queryBuilders';
+import { BaseClient } from '../clients';
 
-export const all: Executor<any[]> = async (client, sqlObject, options) => {
-  const result = await query(client, sqlObject, options);
+import { query } from './query';
+import { ExecutorOptions } from './types';
+
+export async function all<TReturn>(
+  client: BaseClient,
+  sqlObject: SqlObject,
+  options?: ExecutorOptions,
+): Promise<TReturn[]> {
+  const result = await query<any>(client, sqlObject, options);
 
   const { rows } = result;
 
   return rows;
-};
+}

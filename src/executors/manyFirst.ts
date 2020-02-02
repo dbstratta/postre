@@ -1,20 +1,22 @@
 import { NoRowsError } from '../errors';
+import { BaseClient } from '../clients';
+import { SqlObject } from '../queryBuilders';
 
-import { Executor } from './executor';
 import { allFirst } from './allFirst';
+import { ExecutorOptions } from './types';
 
-export type ManyFirstQueryOptions = {};
+export type ManyFirstQueryOptions = {} & Pick<ExecutorOptions, 'logging'>;
 
-export const manyFirst: Executor<any[], ManyFirstQueryOptions> = async (
-  client,
-  sqlObject,
-  options,
-) => {
-  const rows = await allFirst(client, sqlObject, options);
+export async function manyFirst<TResult>(
+  client: BaseClient,
+  sqlObject: SqlObject,
+  options?: ManyFirstQueryOptions,
+): Promise<TResult[]> {
+  const rows = await allFirst<TResult>(client, sqlObject, options);
 
   if (rows.length === 0) {
     throw new NoRowsError();
   }
 
   return rows;
-};
+}

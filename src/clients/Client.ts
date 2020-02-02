@@ -2,7 +2,7 @@ import * as pg from 'pg';
 
 import { BaseClient, StartTransactionOptions, TransactionFunction } from './BaseClient';
 import { Transaction } from './Transaction';
-import { doInTransaction } from './helpers';
+import { doInTransaction, doStartTransaction } from './helpers';
 import { ClientConnectionOptions } from './types';
 
 export type ClientOptions = ClientConnectionOptions;
@@ -27,15 +27,14 @@ export class Client extends BaseClient {
     return this.pgClient;
   }
 
-  public async startTransaction(
-    options: StartTransactionOptions = {},
-  ): Promise<Transaction<Client>> {
-    const transaction = new Transaction({
-      client: this,
-      isolationLevel: options.isolationLevel,
-    });
+  public async startTransaction(options?: StartTransactionOptions): Promise<Transaction<any>> {
+    if (options && options.client) {
+      const { client, ...restOfOptions } = options;
 
-    await transaction.start();
+      return client.startTransaction(restOfOptions);
+    }
+
+    const transaction = await doStartTransaction(this, options);
 
     return transaction;
   }
@@ -44,6 +43,12 @@ export class Client extends BaseClient {
     transactionFunction: TransactionFunction<TReturn>,
     options?: StartTransactionOptions,
   ): Promise<TReturn> {
+    if (options && options.client) {
+      const { client, ...restOfOptions } = options;
+
+      return client.doInTransaction(transactionFunction, restOfOptions);
+    }
+
     return doInTransaction(this, transactionFunction, options);
   }
 

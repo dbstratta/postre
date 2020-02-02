@@ -97,6 +97,7 @@ module.exports = {
         'no-shadow': 'off',
         'prefer-destructuring': 'off',
         'no-multi-str': 'off',
+        'no-dupe-class-members': 'off',
 
         'import/export': 'off',
 

@@ -52,9 +52,13 @@ export class Pool extends BaseClient {
     return this.pgPool;
   }
 
-  public async startTransaction(
-    options?: StartTransactionOptions,
-  ): Promise<Transaction<PoolClient>> {
+  public async startTransaction(options?: StartTransactionOptions): Promise<Transaction<any>> {
+    if (options && options.client) {
+      const { client, ...restOfOptions } = options;
+
+      return client.startTransaction(restOfOptions);
+    }
+
     const poolClient = await this.getPoolClient();
 
     const transaction = await poolClient.startTransaction(options);
@@ -74,6 +78,12 @@ export class Pool extends BaseClient {
     transactionFunction: TransactionFunction<TReturn>,
     options?: StartTransactionOptions,
   ): Promise<TReturn> {
+    if (options && options.client) {
+      const { client, ...restOfOptions } = options;
+
+      return client.doInTransaction(transactionFunction, restOfOptions);
+    }
+
     const poolClient = await this.getPoolClient();
 
     try {
@@ -81,7 +91,7 @@ export class Pool extends BaseClient {
 
       return result;
     } finally {
-      await poolClient.release();
+      poolClient.release();
     }
   }
 

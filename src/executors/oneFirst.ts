@@ -1,13 +1,18 @@
 import { MultipleColumnsError } from '../errors';
+import { BaseClient } from '../clients';
+import { SqlObject } from '../queryBuilders';
 
-import { Executor } from './executor';
 import { one } from './one';
-import { RowMode } from './query';
+import { RowMode, ExecutorOptions } from './types';
 
-export type OneFirstQueryOptions = {};
+export type OneFirstQueryOptions = {} & Pick<ExecutorOptions, 'logging'>;
 
-export const oneFirst: Executor<any, OneFirstQueryOptions> = async (client, sqlObject, options) => {
-  const arrayRow = await one(client, sqlObject, {
+export async function oneFirst<TResult>(
+  client: BaseClient,
+  sqlObject: SqlObject,
+  options?: OneFirstQueryOptions,
+): Promise<TResult> {
+  const arrayRow = await one<any>(client, sqlObject, {
     ...options,
     rowMode: RowMode.Array,
   });
@@ -19,4 +24,4 @@ export const oneFirst: Executor<any, OneFirstQueryOptions> = async (client, sqlO
   const value = arrayRow[0];
 
   return value;
-};
+}

@@ -1,4 +1,4 @@
-export { MigrationId, MigrationFilename } from './types';
-export { createMigration } from './createMigration';
-export { migrate, MigrateArgs } from './migrate';
-export { rollback, RollbackArgs } from './rollback';
+export * from './types';
+export * from './createMigration';
+export * from './migrate';
+export * from './rollback';

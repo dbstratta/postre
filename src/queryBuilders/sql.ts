@@ -4,7 +4,8 @@ import { AndObject, and } from './and';
 import { OrObject, or } from './or';
 import { ObjectKind, PostreObject, PrimitiveType } from './types';
 import { IdentifierObject, identifier } from './identifiers';
-import { AssignmentObject, assignment } from './assignment';
+import { AssignmentsObject, assignments } from './assignments';
+import { join, JoinObject } from './join';
 
 export type SqlObject = PostreObject & {
   kind: ObjectKind.Sql;
@@ -20,7 +21,8 @@ export type SqlValue =
   | AndObject
   | OrObject
   | IdentifierObject
-  | AssignmentObject
+  | AssignmentsObject
+  | JoinObject
   | PrimitiveType;
 
 export function sql(
@@ -41,4 +43,5 @@ sql.unsafeRaw = unsafeRaw;
 sql.and = and;
 sql.or = or;
 sql.identifier = identifier;
-sql.assignment = assignment;
+sql.assignments = assignments;
+sql.join = join;

@@ -1,10 +1,16 @@
 import { MultipleRowsError } from '../errors';
+import { BaseClient } from '../clients';
+import { SqlObject } from '../queryBuilders';
 
-import { Executor } from './executor';
 import { all } from './all';
+import { ExecutorOptions } from './types';
 
-export const maybeOne: Executor<any> = async (client, sqlObject, options) => {
-  const rows = await all(client, sqlObject, options);
+export async function maybeOne<TResult>(
+  client: BaseClient,
+  sqlObject: SqlObject,
+  options?: ExecutorOptions,
+): Promise<TResult | null> {
+  const rows = await all<TResult>(client, sqlObject, options);
 
   if (rows.length === 0) {
     return null;
@@ -17,4 +23,4 @@ export const maybeOne: Executor<any> = async (client, sqlObject, options) => {
   const row = rows[0];
 
   return row;
-};
+}

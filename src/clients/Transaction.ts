@@ -41,9 +41,13 @@ export class Transaction<TClient extends Client | PoolClient> extends BaseClient
     return this.client.getPgClient();
   }
 
-  public async startTransaction(
-    options: StartTransactionOptions = {},
-  ): Promise<Transaction<TClient>> {
+  public async startTransaction(options: StartTransactionOptions = {}): Promise<Transaction<any>> {
+    if (options && options.client) {
+      const { client, ...restOfOptions } = options;
+
+      return client.startTransaction(restOfOptions);
+    }
+
     return this;
   }
 
@@ -114,6 +118,12 @@ export class Transaction<TClient extends Client | PoolClient> extends BaseClient
     transactionFunction: TransactionFunction<TReturn>,
     options?: StartTransactionOptions,
   ): Promise<TReturn> {
+    if (options && options.client) {
+      const { client, ...restOfOptions } = options;
+
+      return client.doInTransaction(transactionFunction, restOfOptions);
+    }
+
     return transactionFunction(this);
   }
 }

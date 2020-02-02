@@ -2,7 +2,7 @@ import * as pg from 'pg';
 
 import { BaseClient, StartTransactionOptions, TransactionFunction } from './BaseClient';
 import { Transaction } from './Transaction';
-import { doInTransaction } from './helpers';
+import { doInTransaction, doStartTransaction } from './helpers';
 
 export type PoolClientOptions = {
   pgPoolClient: pg.PoolClient;
@@ -21,15 +21,14 @@ export class PoolClient extends BaseClient {
     return this.pgPoolClient;
   }
 
-  public async startTransaction(
-    options: StartTransactionOptions = {},
-  ): Promise<Transaction<PoolClient>> {
-    const transaction = new Transaction({
-      client: this,
-      isolationLevel: options.isolationLevel,
-    });
+  public async startTransaction(options?: StartTransactionOptions): Promise<Transaction<any>> {
+    if (options && options.client) {
+      const { client, ...restOfOptions } = options;
 
-    await transaction.start();
+      return client.startTransaction(restOfOptions);
+    }
+
+    const transaction = await doStartTransaction(this, options);
 
     return transaction;
   }
@@ -38,14 +37,20 @@ export class PoolClient extends BaseClient {
     transactionFunction: TransactionFunction<TReturn>,
     options?: StartTransactionOptions,
   ): Promise<TReturn> {
+    if (options && options.client) {
+      const { client, ...restOfOptions } = options;
+
+      return client.doInTransaction(transactionFunction, restOfOptions);
+    }
+
     return doInTransaction(this, transactionFunction, options);
   }
 
   /**
    * Releases the client back to the pool.
    */
-  public async release(): Promise<void> {
-    await this.pgPoolClient.release();
+  public release(): void {
+    this.pgPoolClient.release();
   }
 }
 

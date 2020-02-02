@@ -10,7 +10,8 @@ export enum ObjectKind {
   Or = 'or',
   Identifier = 'identifier',
   InfixOperation = 'infixOperation',
-  Assignment = 'assignment',
+  Assignments = 'assignments',
+  Join = 'join',
 }
 
 export type PostreObject = {

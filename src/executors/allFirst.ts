@@ -1,16 +1,18 @@
 import { MultipleColumnsError } from '../errors';
+import { BaseClient } from '../clients';
+import { SqlObject } from '../queryBuilders';
 
-import { Executor } from './executor';
-import { query, RowMode } from './query';
+import { query } from './query';
+import { RowMode, ExecutorOptions } from './types';
 
-export type AllFirstQueryOptions = {};
+export type AllFirstQueryOptions = {} & Pick<ExecutorOptions, 'logging'>;
 
-export const allFirst: Executor<any[], AllFirstQueryOptions> = async (
-  client,
-  sqlObject,
-  options,
-) => {
-  const result = await query(client, sqlObject, {
+export async function allFirst<TResult>(
+  client: BaseClient,
+  sqlObject: SqlObject,
+  options?: AllFirstQueryOptions,
+): Promise<TResult[]> {
+  const result = await query<any>(client, sqlObject, {
     ...options,
     rowMode: RowMode.Array,
   });
@@ -24,4 +26,4 @@ export const allFirst: Executor<any[], AllFirstQueryOptions> = async (
   const values = arrayRows.map(arrayRow => arrayRow[0]);
 
   return values;
-};
+}
