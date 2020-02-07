@@ -3,6 +3,21 @@
   "configurations": [
     {
       "type": "node",
+      "request": "attach",
+      "name": "Attach...",
+      "protocol": "inspector",
+      "restart": true,
+      "sourceMaps": true,
+      "processId": "${command:PickProcess}",
+      "stopOnEntry": false,
+      "smartStep": true,
+      "address": "localhost",
+      "timeout": 10000,
+      "showAsyncStacks": true,
+      "skipFiles": ["node_modules/**/*.js", "<node_internals>/**/*.js"]
+    },
+    {
+      "type": "node",
       "request": "launch",
       "name": "Test all",
       "protocol": "inspector",

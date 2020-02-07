@@ -1,7 +1,6 @@
 {
   "eslint.autoFixOnSave": true,
   "eslint.validate": ["javascript", "typescript"],
-  "prettier.eslintIntegration": false,
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,
@@ -17,5 +16,8 @@
     "**/.git/subtree-cache/**": true,
     "**/node_modules/**": true,
     "**/dist/**": true
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
   }
 }

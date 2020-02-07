@@ -73,6 +73,9 @@ function flattenSqlFragments(sqlObject: SqlObject): SqlFragment[] {
       } else if (isIdentifier(sqlValue)) {
         stringToAppend = stringifyIdentifierObject(sqlValue) + nextOriginalFragment;
         stringsToPush = [];
+      } else if (isUnsafeRaw(sqlValue)) {
+        stringToAppend = sqlValue.unsafeString + nextOriginalFragment;
+        stringsToPush = [];
       } else {
         stringToAppend = '';
         stringsToPush = [nextOriginalFragment];

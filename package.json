@@ -1,6 +1,6 @@
 {
   "name": "postre",
-  "version": "0.0.8",
+  "version": "0.0.10",
   "license": "MIT",
   "private": false,
   "main": "dist/index.js",
