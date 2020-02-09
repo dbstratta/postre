@@ -67,7 +67,7 @@ export function prependStringToFirstElementInPlace(
   stringToPrepend: string,
 ): string[] {
   // eslint-disable-next-line no-param-reassign
-  strings[0] = `${strings[0]}${stringToPrepend}`;
+  strings[0] = `${stringToPrepend}${strings[0]}`;
 
   return strings;
 }
