@@ -13,6 +13,7 @@ import {
   isJoin,
   stringifyIdentifierObject,
   getStringToAppendAndStringsToPushForSqlObject,
+  quoteString,
 } from './helpers';
 import { AndObject } from './and';
 import { OrObject } from './or';
@@ -153,7 +154,7 @@ function getSqlFragmentsFromAssignmentObject(assignmentObject: AssignmentsObject
 
       appendStringToLastElementInPlace(
         partialSqlFragments,
-        `${key} ${sqlTokens.assignmentOperator} `,
+        `${quoteString(key)} ${sqlTokens.assignmentOperator} `,
       );
 
       let stringToAppend: string;

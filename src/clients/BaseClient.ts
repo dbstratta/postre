@@ -40,7 +40,7 @@ export abstract class BaseClient {
     return executors.manyFirst<TResult>(this.resolveClient(options), sqlObject, options);
   }
 
-  protected resolveClient(options?: ClientOverrideOption): BaseClient {
+  protected resolveClient(options?: ClientOverrideOptions): BaseClient {
     if (options && options.client) {
       return options.client;
     }
@@ -56,21 +56,24 @@ export abstract class BaseClient {
   ): Promise<TReturn>;
 }
 
-export type QueryOptions = executors.ExecutorOptions & ClientOverrideOption;
+export type QueryOptions = executors.ExecutorOptions & ClientOverrideOptions;
 
-export type OneFirstQueryOptions = executors.OneFirstQueryOptions & ClientOverrideOption;
+export type OneFirstQueryOptions = executors.OneFirstQueryOptions & ClientOverrideOptions;
 
-export type ManyFirstQueryOptions = executors.ManyFirstQueryOptions & ClientOverrideOption;
+export type ManyFirstQueryOptions = executors.ManyFirstQueryOptions & ClientOverrideOptions;
 
-export type AllFirstQueryOptions = executors.AllFirstQueryOptions & ClientOverrideOption;
+export type AllFirstQueryOptions = executors.AllFirstQueryOptions & ClientOverrideOptions;
 
-export type ClientOverrideOption = { client?: BaseClient };
+export type ClientOverrideOptions = { client?: BaseClient };
 
 export type StartTransactionOptions = {
   isolationLevel?: TransactionIsolationLevel;
-} & ClientOverrideOption;
+} & ClientOverrideOptions;
 
-export type TransactionFunction<TReturn> = (transaction: Transaction<any>) => Promise<TReturn>;
+export type TransactionFunction<TReturn> = (
+  transaction: Transaction<any>,
+  options: ClientOverrideOptions,
+) => Promise<TReturn>;
 
 export enum TransactionIsolationLevel {
   Serializable = 'SERIALIZABLE',

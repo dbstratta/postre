@@ -7,6 +7,7 @@ import {
   StartTransactionOptions,
   TransactionIsolationLevel,
   TransactionFunction,
+  ClientOverrideOptions,
 } from './BaseClient';
 import { Client } from './Client';
 import { PoolClient } from './PoolClient';
@@ -124,6 +125,11 @@ export class Transaction<TClient extends Client | PoolClient> extends BaseClient
       return client.doInTransaction(transactionFunction, restOfOptions);
     }
 
-    return transactionFunction(this);
+    const optionsWithTransaction: ClientOverrideOptions = {
+      ...options,
+      client: this,
+    };
+
+    return transactionFunction(this, optionsWithTransaction);
   }
 }
