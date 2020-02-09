@@ -34,7 +34,7 @@
   "dependencies": {
     "@types/pg": "7.11.2",
     "colorette": "1.1.0",
-    "commander": "3.0.2",
+    "commander": "4.1.1",
     "cosmiconfig": "5.2.1",
     "debug": "4.1.1",
     "ora": "4.0.2"
