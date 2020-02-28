@@ -1,23 +1,13 @@
 module.exports = api => {
-  api.cache.never();
+  const babelEnv = api.env();
 
-  return {
-    presets: getPresets(),
-    plugins: getPlugins(),
-    exclude: 'node_modules/**',
-    comments: false,
-  };
-};
-
-function getPresets() {
-  const basePresets = [
+  const presets = [
     [
       '@babel/preset-env',
       {
         targets: {
-          node: 'current',
+          node: '13.8.0',
         },
-        modules: 'commonjs',
         debug: !!process.env.DEBUG_BABEL,
         useBuiltIns: false,
       },
@@ -25,14 +15,26 @@ function getPresets() {
     '@babel/preset-typescript',
   ];
 
-  return basePresets;
-}
+  const plugins = ['dynamic-import-node'];
 
-function getPlugins() {
-  const basePlugins = [
-    '@babel/plugin-proposal-class-properties',
-    'dynamic-import-node',
-  ];
+  const ignore = getIgnoredPaths(babelEnv);
 
-  return basePlugins;
+  const sourceMaps = babelEnv === 'production' ? true : 'inline';
+
+  return {
+    presets,
+    ignore,
+    plugins,
+    sourceMaps,
+  };
+};
+
+function getIgnoredPaths(babelEnv) {
+  const baseIgnorePaths = ['node_modules'];
+
+  if (babelEnv === 'production') {
+    return [...baseIgnorePaths, '**/*.spec.ts', '**/*.test.ts', '**/*.d.ts'];
+  }
+
+  return baseIgnorePaths;
 }

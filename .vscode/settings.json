@@ -1,6 +1,8 @@
 {
-  "eslint.autoFixOnSave": true,
-  "eslint.validate": ["javascript", "typescript"],
+  "eslint.validate": [
+    "javascript",
+    "typescript"
+  ],
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,

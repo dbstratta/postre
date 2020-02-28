@@ -1,16 +1,14 @@
 import { greenBright, redBright } from 'colorette';
-import ora, { Ora } from 'ora';
 
 import { loadConfiguration, MigrationConfiguration } from '../config';
-import { Transaction, Client } from '../clients';
+import { Client } from '../clients';
+import { spinner } from '../helpers';
 
-import { MigrationId, MigrationFilename } from './types';
+import { MigrationId } from './types';
 import {
   setupClient,
   checkIfMigrationIdIsValid,
-  getMigrationIdFromFilename,
   hasMigrationBeenMigrated,
-  getArrayElementOrFirst,
   makeDurationInSecondsString,
 } from './helpers';
 import {
@@ -21,80 +19,59 @@ import {
 } from './schemaMigrationsTable';
 import {
   findAndImportAllMigrations,
-  MigrationTuple,
   Migration,
   createMigrationFilesDirectory,
 } from './migrationFiles';
 
-export type RollbackArgs =
-  | {
-      toMigrationId: MigrationId;
-      step?: undefined;
-    }
-  | {
-      step: number;
-      toMigrationId?: undefined;
-    }
-  | {
-      step?: undefined;
-      toMigrationId?: undefined;
-    };
+export type RollbackArgs = {
+  toMigrationId?: MigrationId;
+};
 
 export async function rollback(args: RollbackArgs): Promise<void> {
-  const spinner = ora();
-  const configuration = await loadConfiguration(spinner);
+  const configuration = await loadConfiguration();
 
-  await createMigrationFilesDirectory(configuration, spinner);
+  await createMigrationFilesDirectory(configuration);
 
-  const migrationTuples = await findAndImportAllMigrations(configuration, spinner);
+  const migrations = await findAndImportAllMigrations(configuration);
 
-  const client = await setupClient(configuration);
+  const schemaMigrationsTableClient = await setupClient(configuration);
 
-  await createSchemaMigrationsTableIfItDoesntExist(client, configuration);
+  await createSchemaMigrationsTableIfItDoesntExist(schemaMigrationsTableClient, configuration);
+
+  let migrationsClient: Client | undefined = undefined;
 
   let rollbackedMigrations = 0;
   const startTimestamp = Date.now();
 
   try {
-    await client.doInTransaction(async transaction => {
-      await lockMigrationsTable(transaction, configuration);
+    migrationsClient = await setupClient(configuration);
 
-      const migratedMigrationIds = await getMigratedMigrationIds(transaction, configuration);
-
-      if (args.toMigrationId) {
-        rollbackedMigrations = await rollbackTo(
-          transaction,
-          configuration,
-          args.toMigrationId,
-          migratedMigrationIds,
-          migrationTuples,
-          spinner,
-        );
-      } else if (args.step) {
-        rollbackedMigrations = await rollbackStep(
-          transaction,
-          configuration,
-          args.step,
-          migratedMigrationIds,
-          migrationTuples,
-          spinner,
-        );
-      } else {
-        rollbackedMigrations = await rollbackAll(
-          transaction,
-          configuration,
-          migratedMigrationIds,
-          migrationTuples,
-          spinner,
-        );
-      }
-    });
+    if (args.toMigrationId) {
+      rollbackedMigrations = await rollbackTo(
+        migrationsClient,
+        schemaMigrationsTableClient,
+        configuration,
+        args.toMigrationId,
+        migrations,
+      );
+    } else {
+      rollbackedMigrations = await rollbackAll(
+        migrationsClient,
+        schemaMigrationsTableClient,
+        configuration,
+        migrations,
+      );
+    }
   } catch (error) {
     spinner.fail('no migrations were rollbacked due to an error');
 
     throw error;
   } finally {
-    await client.disconnect();
+    if (migrationsClient) {
+      await migrationsClient.disconnect();
+    }
+
+    await schemaMigrationsTableClient.disconnect();
   }
 
   const finishTimestamp = Date.now();
@@ -106,108 +83,107 @@ export async function rollback(args: RollbackArgs): Promise<void> {
 }
 
 async function rollbackTo(
-  transaction: Transaction<Client>,
+  migrationsClient: Client,
+  schemaMigrationsTableClient: Client,
   configuration: MigrationConfiguration,
   toMigrationId: MigrationId,
-  migratedMigrationIds: MigrationId[],
-  migrationTuples: MigrationTuple[],
-  spinner: Ora,
+  migrations: Migration[],
 ): Promise<number> {
-  checkIfMigrationIdIsValid(migrationTuples, toMigrationId);
+  checkIfMigrationIdIsValid(migrations, toMigrationId);
 
   let rollbackedMigrations = 0;
-  const reversedMigrationTuples = [...migrationTuples].reverse();
+  const reversedMigrations = [...migrations].reverse();
 
-  for (const [migrationFilename, migration] of reversedMigrationTuples) {
-    const migrationId = getMigrationIdFromFilename(migrationFilename);
+  for (const migration of reversedMigrations) {
+    if (migration.id >= toMigrationId) {
+      const wasRollbacked = await rollbackMigration(
+        migrationsClient,
+        schemaMigrationsTableClient,
+        configuration,
+        migration,
+      );
 
-    if (
-      migrationId >= toMigrationId &&
-      hasMigrationBeenMigrated(migratedMigrationIds, migrationId)
-    ) {
-      // eslint-disable-next-line no-await-in-loop
-      await rollbackMigration(transaction, configuration, migrationFilename, migration, spinner);
-
-      rollbackedMigrations += 1;
+      if (wasRollbacked) {
+        rollbackedMigrations += 1;
+      }
     }
   }
 
   return rollbackedMigrations;
 }
 
-async function rollbackStep(
-  transaction: Transaction<Client>,
-  configuration: MigrationConfiguration,
-  step: number,
-  migratedMigrationIds: MigrationId[],
-  migrationTuples: MigrationTuple[],
-  spinner: Ora,
-): Promise<number> {
-  if (step === 0 || migratedMigrationIds.length === 0) {
-    return 0;
-  }
-
-  const toMigrationId = getArrayElementOrFirst(
-    migratedMigrationIds,
-    migratedMigrationIds.length - step,
-  );
-
-  return rollbackTo(
-    transaction,
-    configuration,
-    toMigrationId,
-    migratedMigrationIds,
-    migrationTuples,
-    spinner,
-  );
-}
-
 async function rollbackAll(
-  transaction: Transaction<Client>,
+  migrationsClient: Client,
+  schemaMigrationsTableClient: Client,
   configuration: MigrationConfiguration,
-  migratedMigrationIds: MigrationId[],
-  migrationTuples: MigrationTuple[],
-  spinner: Ora,
+  migrations: Migration[],
 ): Promise<number> {
-  const [latestMigrationFilename] = migrationTuples[0];
-  const latestMigrationId = getMigrationIdFromFilename(latestMigrationFilename);
+  const latestMigration = migrations[0];
 
   return rollbackTo(
-    transaction,
+    migrationsClient,
+    schemaMigrationsTableClient,
     configuration,
-    latestMigrationId,
-    migratedMigrationIds,
-    migrationTuples,
-    spinner,
+    latestMigration.id,
+    migrations,
   );
 }
 
 async function rollbackMigration(
-  transaction: Transaction<Client>,
+  migrationsClient: Client,
+  schemaMigrationsTableClient: Client,
   configuration: MigrationConfiguration,
-  migrationFilename: MigrationFilename,
   migration: Migration,
-  spinner: Ora,
-): Promise<void> {
-  spinner.start(`rollbacking ${greenBright(migrationFilename)}`);
+): Promise<boolean> {
+  spinner.start(`rollbacking ${greenBright(migration.filename)}`);
 
-  const migrationId = getMigrationIdFromFilename(migrationFilename);
   const startTimestamp = Date.now();
 
-  try {
-    await migration.rollback(transaction);
+  const wasRollbacked = await schemaMigrationsTableClient.doInTransaction(
+    async schemaMigrationsTableTransaction => {
+      await lockMigrationsTable(schemaMigrationsTableTransaction, configuration);
 
-    await deleteFromSchemaMigrationsTable(transaction, configuration, migrationId);
-  } catch (error) {
-    spinner.fail(`${redBright(migrationFilename)} failed to rollback`);
+      const migratedMigrationIds = await getMigratedMigrationIds(
+        schemaMigrationsTableTransaction,
+        configuration,
+      );
 
-    throw error;
-  }
+      if (!hasMigrationBeenMigrated(migratedMigrationIds, migration.id)) {
+        return false;
+      }
+
+      try {
+        if (migration.disableTransaction) {
+          await migration.rollback(migrationsClient);
+        } else {
+          await migrationsClient.doInTransaction(async transaction => {
+            await migration.rollback(transaction);
+          });
+        }
+      } catch (error) {
+        spinner.fail(`${redBright(migration.filename)} failed to rollback`);
+
+        throw error;
+      }
+
+      await deleteFromSchemaMigrationsTable(
+        schemaMigrationsTableTransaction,
+        configuration,
+        migration.id,
+      );
+
+      return true;
+    },
+  );
 
   const finishTimestamp = Date.now();
   const durationInSecondsString = makeDurationInSecondsString(startTimestamp, finishTimestamp);
 
-  spinner.succeed(
-    `${greenBright(migrationFilename)} rollbacked in ${durationInSecondsString} seconds`,
-  );
+  if (wasRollbacked) {
+    spinner.succeed(
+      `${greenBright(migration.filename)} rollbacked in ${durationInSecondsString} seconds`,
+    );
+  }
+
+  return wasRollbacked;
 }

@@ -97,3 +97,7 @@ export function getStringToAppendAndStringsToPushForSqlObject(
 
   return [stringToAppend, stringsToPush];
 }
+
+export function makeParameterString(parameterNumber: number): string {
+  return sqlTokens.parameterPrefix + parameterNumber.toString();
+}

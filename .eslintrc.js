@@ -47,6 +47,8 @@ module.exports = {
     'no-use-before-define': 'off',
     'no-restricted-syntax': 'off',
     'no-console': 'off',
+    'no-undef-init': 'off',
+    'no-await-in-loop': 'off',
 
     'unicorn/filename-case': 'off',
     'unicorn/prevent-abbreviations': 'off',
@@ -56,6 +58,7 @@ module.exports = {
     'import/no-extraneous-dependencies': 'off',
     'import/prefer-default-export': 'off',
     'import/order': ['error', { 'newlines-between': 'always' }],
+    'import/extensions': 'off',
 
     'prettier/prettier': 'error',
 

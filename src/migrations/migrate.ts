@@ -1,16 +1,13 @@
 import { greenBright, redBright } from 'colorette';
-import ora, { Ora } from 'ora';
 
 import { loadConfiguration, MigrationConfiguration } from '../config';
-import { Transaction, Client } from '../clients';
+import { Client } from '../clients';
+import { spinner } from '../helpers';
 
-import { MigrationId, MigrationFilename } from './types';
+import { MigrationId } from './types';
 import {
   setupClient,
-  getMigrationIdFromFilename,
   hasMigrationBeenMigrated,
-  getNotMigratedMigrationIds,
-  getArrayElementOrLast,
   checkIfMigrationIdIsValid,
   makeDurationInSecondsString,
 } from './helpers';
@@ -22,80 +19,59 @@ import {
 } from './schemaMigrationsTable';
 import {
   Migration,
-  MigrationTuple,
   findAndImportAllMigrations,
   createMigrationFilesDirectory,
 } from './migrationFiles';
 
-export type MigrateArgs =
-  | {
-      toMigrationId: MigrationId;
-      step?: undefined;
-    }
-  | {
-      step: number;
-      toMigrationId?: undefined;
-    }
-  | {
-      step?: undefined;
-      toMigrationId?: undefined;
-    };
+export type MigrateArgs = {
+  toMigrationId?: MigrationId;
+};
 
 export async function migrate(args: MigrateArgs): Promise<void> {
-  const spinner = ora();
-  const configuration = await loadConfiguration(spinner);
+  const configuration = await loadConfiguration();
 
-  await createMigrationFilesDirectory(configuration, spinner);
+  await createMigrationFilesDirectory(configuration);
 
-  const migrationTuples = await findAndImportAllMigrations(configuration, spinner);
+  const migrations = await findAndImportAllMigrations(configuration);
 
-  const client = await setupClient(configuration);
+  const schemaMigrationsTableClient = await setupClient(configuration);
 
-  await createSchemaMigrationsTableIfItDoesntExist(client, configuration);
+  await createSchemaMigrationsTableIfItDoesntExist(schemaMigrationsTableClient, configuration);
+
+  let migrationsClient: Client | undefined = undefined;
 
   let migrationsMigrated = 0;
   const startTimestamp = Date.now();
 
   try {
-    await client.doInTransaction(async transaction => {
-      await lockMigrationsTable(transaction, configuration);
+    migrationsClient = await setupClient(configuration);
 
-      const migratedMigrationIds = await getMigratedMigrationIds(transaction, configuration);
-
-      if (args.toMigrationId) {
-        migrationsMigrated = await migrateTo(
-          transaction,
-          configuration,
-          args.toMigrationId,
-          migratedMigrationIds,
-          migrationTuples,
-          spinner,
-        );
-      } else if (args.step) {
-        migrationsMigrated = await migrateStep(
-          transaction,
-          configuration,
-          args.step,
-          migratedMigrationIds,
-          migrationTuples,
-          spinner,
-        );
-      } else {
-        migrationsMigrated = await migrateAll(
-          transaction,
-          configuration,
-          migratedMigrationIds,
-          migrationTuples,
-          spinner,
-        );
-      }
-    });
+    if (args.toMigrationId) {
+      migrationsMigrated = await migrateTo(
+        migrationsClient,
+        schemaMigrationsTableClient,
+        configuration,
+        args.toMigrationId,
+        migrations,
+      );
+    } else {
+      migrationsMigrated = await migrateAll(
+        migrationsClient,
+        schemaMigrationsTableClient,
+        configuration,
+        migrations,
+      );
+    }
   } catch (error) {
     spinner.fail('no migrations were migrated due to an error');
 
     throw error;
   } finally {
-    await client.disconnect();
+    if (migrationsClient) {
+      await migrationsClient.disconnect();
+    }
+
+    await schemaMigrationsTableClient.disconnect();
   }
 
   const finishTimestamp = Date.now();
@@ -107,106 +83,106 @@ export async function migrate(args: MigrateArgs): Promise<void> {
 }
 
 async function migrateTo(
-  transaction: Transaction<Client>,
+  migrationsClient: Client,
+  schemaMigrationsTableClient: Client,
   configuration: MigrationConfiguration,
   toMigrationId: MigrationId,
-  migratedMigrationIds: MigrationId[],
-  migrationTuples: MigrationTuple[],
-  spinner: Ora,
+  migrations: Migration[],
 ): Promise<number> {
-  checkIfMigrationIdIsValid(migrationTuples, toMigrationId);
+  checkIfMigrationIdIsValid(migrations, toMigrationId);
 
   let migratedMigrations = 0;
 
-  for (const [migrationFilename, migration] of migrationTuples) {
-    const migrationId = getMigrationIdFromFilename(migrationFilename);
+  for (const migration of migrations) {
+    if (migration.id <= toMigrationId) {
+      const wasMigrated = await migrateMigration(
+        migrationsClient,
+        schemaMigrationsTableClient,
+        configuration,
+        migration,
+      );
 
-    if (
-      migrationId <= toMigrationId &&
-      !hasMigrationBeenMigrated(migratedMigrationIds, migrationId)
-    ) {
-      // eslint-disable-next-line no-await-in-loop
-      await migrateMigration(transaction, configuration, migrationFilename, migration, spinner);
-
-      migratedMigrations += 1;
+      if (wasMigrated) {
+        migratedMigrations += 1;
+      }
     }
   }
 
   return migratedMigrations;
 }
 
-async function migrateStep(
-  transaction: Transaction<Client>,
-  configuration: MigrationConfiguration,
-  step: number,
-  migratedMigrationIds: MigrationId[],
-  migrationTuples: MigrationTuple[],
-  spinner: Ora,
-): Promise<number> {
-  const notMigratedMigrationIds = getNotMigratedMigrationIds(migratedMigrationIds, migrationTuples);
-
-  if (step === 0 || notMigratedMigrationIds.length === 0) {
-    return 0;
-  }
-
-  const toMigrationId = getArrayElementOrLast(notMigratedMigrationIds, step - 1);
-
-  return migrateTo(
-    transaction,
-    configuration,
-    toMigrationId,
-    migratedMigrationIds,
-    migrationTuples,
-    spinner,
-  );
-}
-
 async function migrateAll(
-  transaction: Transaction<Client>,
+  migrationsClient: Client,
+  schemaMigrationsTableClient: Client,
   configuration: MigrationConfiguration,
-  migratedMigrationIds: MigrationId[],
-  migrationTuples: MigrationTuple[],
-  spinner: Ora,
+  migrations: Migration[],
 ): Promise<number> {
-  const [latestMigrationFilename] = migrationTuples[migrationTuples.length - 1];
-  const latestMigrationId = getMigrationIdFromFilename(latestMigrationFilename);
+  const latestMigration = migrations[migrations.length - 1];
 
   return migrateTo(
-    transaction,
+    migrationsClient,
+    schemaMigrationsTableClient,
     configuration,
-    latestMigrationId,
-    migratedMigrationIds,
-    migrationTuples,
-    spinner,
+    latestMigration.id,
+    migrations,
   );
 }
 
 async function migrateMigration(
-  transaction: Transaction<Client>,
+  migrationsClient: Client,
+  schemaMigrationsTableClient: Client,
   configuration: MigrationConfiguration,
-  migrationFilename: MigrationFilename,
   migration: Migration,
-  spinner: Ora,
-): Promise<void> {
-  spinner.start(`migrating ${greenBright(migrationFilename)}`);
+): Promise<boolean> {
+  spinner.start(`migrating ${greenBright(migration.filename)}`);
 
-  const migrationId = getMigrationIdFromFilename(migrationFilename);
   const startTimestamp = Date.now();
 
-  try {
-    await migration.migrate(transaction);
+  const wasMigrated = await schemaMigrationsTableClient.doInTransaction(
+    async schemaMigrationsTableTransaction => {
+      await lockMigrationsTable(schemaMigrationsTableTransaction, configuration);
 
-    await insertIntoSchemaMigrationsTable(transaction, configuration, migrationId);
-  } catch (error) {
-    spinner.fail(`${redBright(migrationFilename)} failed to migrate`);
+      const migratedMigrationIds = await getMigratedMigrationIds(
+        schemaMigrationsTableTransaction,
+        configuration,
+      );
 
-    throw error;
-  }
+      if (hasMigrationBeenMigrated(migratedMigrationIds, migration.id)) {
+        return false;
+      }
+
+      try {
+        if (migration.disableTransaction) {
+          await migration.migrate(migrationsClient);
+        } else {
+          await migrationsClient.doInTransaction(async transaction => {
+            await migration.migrate(transaction);
+          });
+        }
+      } catch (error) {
+        spinner.fail(`${redBright(migration.filename)} failed to migrate`);
+
+        throw error;
+      }
+
+      await insertIntoSchemaMigrationsTable(
+        schemaMigrationsTableTransaction,
+        configuration,
+        migration.id,
+      );
+
+      return true;
+    },
+  );
 
   const finishTimestamp = Date.now();
   const durationInSecondsString = makeDurationInSecondsString(startTimestamp, finishTimestamp);
 
-  spinner.succeed(
-    `${greenBright(migrationFilename)} migrated in ${durationInSecondsString} seconds`,
-  );
+  if (wasMigrated) {
+    spinner.succeed(
+      `${greenBright(migration.filename)} migrated in ${durationInSecondsString} seconds`,
+    );
+  }
+
+  return wasMigrated;
 }

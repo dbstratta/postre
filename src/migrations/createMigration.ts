@@ -1,10 +1,10 @@
 import path from 'path';
-import { promises as fs } from 'fs';
+import fs from 'fs';
 
-import ora, { Ora } from 'ora';
 import { greenBright } from 'colorette';
 
 import { loadConfiguration, MigrationConfiguration } from '../config';
+import { spinner } from '../helpers';
 
 import { MigrationId } from './types';
 import { SupportedFileExtensions, migrationFilenameSeparator } from './constants';
@@ -12,14 +12,13 @@ import { javaScriptMigrationFileTemplate } from './templates';
 import { createMigrationFilesDirectory } from './migrationFiles';
 
 export async function createMigration(migrationName: string): Promise<void> {
-  const spinner = ora();
-  const configuration = await loadConfiguration(spinner);
+  const configuration = await loadConfiguration();
 
-  await createMigrationFilesDirectory(configuration, spinner);
+  await createMigrationFilesDirectory(configuration);
 
   const migrationFilename = makeMigrationFilename(migrationName);
 
-  await writeMigrationToFile(configuration, migrationFilename, spinner);
+  await writeMigrationToFile(configuration, migrationFilename);
 }
 
 function makeMigrationFilename(
@@ -75,14 +74,13 @@ function makeMigrationId(date: Date): MigrationId {
 async function writeMigrationToFile(
   configuration: MigrationConfiguration,
   filename: string,
-  spinner: Ora,
 ): Promise<void> {
   const filepath = path.resolve(configuration.migrationFilesDirectoryPath, filename);
 
   spinner.start(`creating ${greenBright(filepath)}`);
 
   try {
-    await fs.writeFile(filepath, javaScriptMigrationFileTemplate);
+    await fs.promises.writeFile(filepath, javaScriptMigrationFileTemplate);
   } catch (error) {
     spinner.fail('failed to create migration');
 

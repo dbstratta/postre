@@ -4,7 +4,7 @@ import { MigrationConfiguration } from '../config';
 
 import { MigrationFilename, MigrationId } from './types';
 import { migrationFilenameSeparator } from './constants';
-import { MigrationTuple } from './migrationFiles';
+import { Migration } from './migrationFiles';
 
 export function getMigrationIdFromFilename(migrationFilename: MigrationFilename): MigrationId {
   const migrationId = BigInt(migrationFilename.split(migrationFilenameSeparator)[0]);
@@ -49,10 +49,10 @@ export function hasMigrationBeenMigrated(
 
 export function getNotMigratedMigrationIds(
   migratedMigrationIds: MigrationId[],
-  migrationTuples: MigrationTuple[],
+  migrations: Migration[],
 ): MigrationId[] {
-  const notMigratedMigrationIds = migrationTuples
-    .map(([migrationFilename]) => getMigrationIdFromFilename(migrationFilename))
+  const notMigratedMigrationIds = migrations
+    .map(migration => getMigrationIdFromFilename(migration.filename))
     .filter(migrationId => !migratedMigrationIds.includes(migrationId));
 
   return notMigratedMigrationIds;
@@ -74,21 +74,15 @@ export function getArrayElementOrFirst<TElement>(array: TElement[], index: numbe
   return array[index];
 }
 
-export function checkIfMigrationIdIsValid(
-  migrationTuples: MigrationTuple[],
-  migrationId: MigrationId,
-): void {
-  if (!isMigrationIdValid(migrationTuples, migrationId)) {
+export function checkIfMigrationIdIsValid(migrations: Migration[], migrationId: MigrationId): void {
+  if (!isMigrationIdValid(migrations, migrationId)) {
     throw new MigrationError(`Couldn't find migration with id ${migrationId}`);
   }
 }
 
-export function isMigrationIdValid(
-  migrationTuples: MigrationTuple[],
-  migrationId: MigrationId,
-): boolean {
-  return migrationTuples
-    .map(([migrationFilename]) => getMigrationIdFromFilename(migrationFilename))
+export function isMigrationIdValid(migrations: Migration[], migrationId: MigrationId): boolean {
+  return migrations
+    .map(migration => getMigrationIdFromFilename(migration.filename))
     .includes(migrationId);
 }
 

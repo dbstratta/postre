@@ -14,6 +14,7 @@ import {
   stringifyIdentifierObject,
   getStringToAppendAndStringsToPushForSqlObject,
   quoteString,
+  makeParameterString,
 } from './helpers';
 import { AndObject } from './and';
 import { OrObject } from './or';
@@ -279,7 +280,7 @@ function makeParameterizedQueryString(sqlFragments: SqlFragment[]): QueryString 
       return partialQueryString + queryFragment;
     }
 
-    return partialQueryString + sqlTokens.parameterPrefix + index.toString() + queryFragment;
+    return partialQueryString + makeParameterString(index) + queryFragment;
   }, '');
 
   return queryString;

@@ -50,10 +50,9 @@ export async function doRun(): Promise<void> {
       parseBigintOption,
     )
     .option('--all', 'migrate all pending migrations')
-    .option('-n, --step <n>', 'migrate <n> pending migrations', parseIntegerOption)
     .action(async options => {
       await tryOrLogError(async () => {
-        await migrate({ toMigrationId: options.to, step: options.step });
+        await migrate({ toMigrationId: options.to });
       });
     });
 
@@ -66,20 +65,10 @@ export async function doRun(): Promise<void> {
       parseBigintOption,
     )
     .option('--all', 'rollback all applied migrations')
-    .option('-n, --step <n>', 'rollback <n> applied migrations', parseIntegerOption)
     .action(async options => {
       await tryOrLogError(async () => {
-        let step: any;
-
-        if (options.to === undefined && options.step === undefined && options.all === undefined) {
-          step = 1;
-        } else {
-          step = options.step;
-        }
-
         await rollback({
           toMigrationId: options.to,
-          step,
         });
       });
     });
@@ -89,10 +78,6 @@ export async function doRun(): Promise<void> {
 
 function parseBigintOption(value: string): bigint {
   return BigInt(value);
-}
-
-function parseIntegerOption(value: string): number {
-  return Number.parseInt(value, 10);
 }
 
 async function tryOrLogError(fn: () => void | Promise<void>): Promise<void> {

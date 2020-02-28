@@ -1,12 +1,12 @@
 import path from 'path';
 import { promises as fs } from 'fs';
 
-import ora, { Ora } from 'ora';
 import { greenBright } from 'colorette';
-import cosmiconfig from 'cosmiconfig';
+import { cosmiconfig } from 'cosmiconfig';
 
 import { ClientConnectionOptions } from '../clients';
 import { MigrationError } from '../errors';
+import { spinner } from '../helpers';
 
 import { javaScriptConfigFileTemplate } from './templates';
 import {
@@ -23,10 +23,10 @@ export type MigrationConfiguration = {
   migrationsTableSchema: string;
 } & ClientConnectionOptions;
 
-export async function loadConfiguration(spinner: Ora): Promise<MigrationConfiguration> {
+export async function loadConfiguration(): Promise<MigrationConfiguration> {
   spinner.start('Searching postre configuration file');
 
-  let result: cosmiconfig.CosmiconfigResult;
+  let result: any;
 
   try {
     result = await loadRawConfiguration();
@@ -59,7 +59,7 @@ export async function loadConfiguration(spinner: Ora): Promise<MigrationConfigur
   return migrationConfiguration;
 }
 
-async function loadRawConfiguration(): Promise<cosmiconfig.CosmiconfigResult> {
+async function loadRawConfiguration(): Promise<any> {
   const explorer = cosmiconfig(cosmiconfigModuleName, {
     searchPlaces: cosmiconfigSearchPlaces,
   });
@@ -70,7 +70,7 @@ async function loadRawConfiguration(): Promise<cosmiconfig.CosmiconfigResult> {
 }
 
 function makeMigrationFilesDirectoryPath(
-  cosmiconfigConfig: cosmiconfig.Config,
+  cosmiconfigConfig: any,
   cosmiconfigFilepath: string,
 ): string {
   const migrationFilesDirectoryPath =
@@ -84,20 +84,15 @@ export type InitializeArgs = {
 };
 
 export async function initialize(args: InitializeArgs): Promise<void> {
-  const spinner = ora();
-
-  await createConfigFile(args.directoryPath, spinner);
+  await createConfigFile(args.directoryPath);
 }
 
-async function createConfigFile(
-  directoryPath: string = process.cwd(),
-  spinner: Ora,
-): Promise<void> {
+async function createConfigFile(directoryPath: string = process.cwd()): Promise<void> {
   const configFilepath = path.resolve(directoryPath, defaultConfigFilename);
 
   spinner.start(`creating ${greenBright(configFilepath)}`);
 
-  let result: cosmiconfig.CosmiconfigResult;
+  let result: any;
 
   try {
     result = await loadRawConfiguration();

@@ -1,38 +1,44 @@
 import path from 'path';
-import { promises as fs, Dirent } from 'fs';
-
-import { Ora } from 'ora';
+import fs, { Dirent } from 'fs';
 
 import { Client, Transaction } from '../clients';
 import { MigrationError } from '../errors';
 import { MigrationConfiguration } from '../config';
+import { spinner } from '../helpers';
 
-import { MigrationFilename } from './types';
-
-export type MigrationTuple = [MigrationFilename, Migration];
+import { MigrationFilename, MigrationId } from './types';
+import { getMigrationIdFromFilename } from './helpers';
 
 export type Migration = {
+  id: MigrationId;
+  filename: MigrationFilename;
+} & ImportedMigration;
+
+export type ImportedMigration = {
   migrate: MigrationFunction;
   rollback: MigrationFunction;
+  disableTransaction?: boolean;
 };
 
 export type MigrationFunction = (client: Client | Transaction<Client>) => Promise<void>;
 
 export async function findAndImportAllMigrations(
   configuration: MigrationConfiguration,
-  spinner: Ora,
-): Promise<MigrationTuple[]> {
+): Promise<Migration[]> {
   const migrationFilenames = await getMigrationFilenames(configuration);
 
-  const migrationTuples = await importAllMigrations(migrationFilenames, configuration, spinner);
+  const migrations = await importAllMigrations(migrationFilenames, configuration);
 
-  return migrationTuples;
+  return migrations;
 }
 
 async function getMigrationFilenames(configuration: MigrationConfiguration): Promise<string[]> {
-  const dirEntities: Dirent[] = await fs.readdir(configuration.migrationFilesDirectoryPath, {
-    withFileTypes: true,
-  });
+  const dirEntities: Dirent[] = await fs.promises.readdir(
+    configuration.migrationFilesDirectoryPath,
+    {
+      withFileTypes: true,
+    },
+  );
 
   const filenames = dirEntities
     .filter(dirEntity => dirEntity.isFile())
@@ -45,22 +51,15 @@ async function getMigrationFilenames(configuration: MigrationConfiguration): Pro
 async function importAllMigrations(
   migrationFilenames: MigrationFilename[],
   configuration: MigrationConfiguration,
-  spinner: Ora,
-): Promise<MigrationTuple[]> {
+): Promise<Migration[]> {
   spinner.start('loading migration files');
 
-  let migrationTuples: MigrationTuple[];
+  let migrations: Migration[];
 
   try {
-    migrationTuples = await Promise.all(
-      migrationFilenames.map(
-        async migrationFilename =>
-          [
-            migrationFilename,
-            await importMigration(
-              path.resolve(configuration.migrationFilesDirectoryPath, migrationFilename),
-            ),
-          ] as MigrationTuple,
+    migrations = await Promise.all(
+      migrationFilenames.map(migrationFilename =>
+        importMigration(path.resolve(configuration.migrationFilesDirectoryPath, migrationFilename)),
       ),
     );
   } catch (error) {
@@ -71,21 +70,26 @@ async function importAllMigrations(
 
   spinner.succeed('migration files loaded successfully');
 
-  return migrationTuples;
+  return migrations;
 }
 
-export async function importMigration(migrationFilename: MigrationFilename): Promise<Migration> {
-  const migration = await import(migrationFilename);
+export async function importMigration(migrationPath: MigrationFilename): Promise<Migration> {
+  const importedMigration = await import(migrationPath);
 
-  validateMigration(migrationFilename, migration);
+  validateMigration(migrationPath, importedMigration);
+
+  const migrationFilename = path.basename(migrationPath);
+
+  const migration: Migration = {
+    id: getMigrationIdFromFilename(migrationFilename),
+    filename: migrationFilename,
+    ...importedMigration,
+  };
 
   return migration;
 }
 
-export function validateMigration(
-  migrationFilename: MigrationFilename,
-  migration: Migration,
-): void {
+export function validateMigration(migrationFilename: MigrationFilename, migration: any): void {
   if (
     typeof migration !== 'object' ||
     typeof migration.migrate !== 'function' ||
@@ -97,15 +101,14 @@ export function validateMigration(
 
 export async function createMigrationFilesDirectory(
   configuration: MigrationConfiguration,
-  spinner: Ora,
 ): Promise<void> {
   try {
-    await fs.access(configuration.migrationFilesDirectoryPath);
+    await fs.promises.access(configuration.migrationFilesDirectoryPath);
   } catch (error) {
     if (error.code === 'ENOENT') {
       spinner.start('creating migration files directory');
 
-      await fs.mkdir(configuration.migrationFilesDirectoryPath, {
+      await fs.promises.mkdir(configuration.migrationFilesDirectoryPath, {
         recursive: true,
       });
 
