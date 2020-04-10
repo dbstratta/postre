@@ -23,7 +23,7 @@ export async function allFirst<TResult>(
 
   const arrayRows = result.rows;
 
-  const values = arrayRows.map(arrayRow => arrayRow[0]);
+  const values = arrayRows.map((arrayRow) => arrayRow[0]);
 
   return values;
 }

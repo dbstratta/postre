@@ -52,8 +52,8 @@ export function getNotMigratedMigrationIds(
   migrations: Migration[],
 ): MigrationId[] {
   const notMigratedMigrationIds = migrations
-    .map(migration => getMigrationIdFromFilename(migration.filename))
-    .filter(migrationId => !migratedMigrationIds.includes(migrationId));
+    .map((migration) => getMigrationIdFromFilename(migration.filename))
+    .filter((migrationId) => !migratedMigrationIds.includes(migrationId));
 
   return notMigratedMigrationIds;
 }
@@ -82,7 +82,7 @@ export function checkIfMigrationIdIsValid(migrations: Migration[], migrationId: 
 
 export function isMigrationIdValid(migrations: Migration[], migrationId: MigrationId): boolean {
   return migrations
-    .map(migration => getMigrationIdFromFilename(migration.filename))
+    .map((migration) => getMigrationIdFromFilename(migration.filename))
     .includes(migrationId);
 }
 

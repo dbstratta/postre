@@ -41,8 +41,8 @@ async function getMigrationFilenames(configuration: MigrationConfiguration): Pro
   );
 
   const filenames = dirEntities
-    .filter(dirEntity => dirEntity.isFile())
-    .map(dirEntity => dirEntity.name)
+    .filter((dirEntity) => dirEntity.isFile())
+    .map((dirEntity) => dirEntity.name)
     .sort();
 
   return filenames;
@@ -58,7 +58,7 @@ async function importAllMigrations(
 
   try {
     migrations = await Promise.all(
-      migrationFilenames.map(migrationFilename =>
+      migrationFilenames.map((migrationFilename) =>
         importMigration(path.resolve(configuration.migrationFilesDirectoryPath, migrationFilename)),
       ),
     );

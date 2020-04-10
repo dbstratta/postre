@@ -4,7 +4,7 @@ module.exports = {
   parser: '@typescript-eslint/parser',
 
   parserOptions: {
-    ecmaVersion: 2019,
+    ecmaVersion: 2020,
     sourceType: 'module',
     project: './tsconfig.json',
     tsconfigRootDir: './',
@@ -25,7 +25,7 @@ module.exports = {
   ],
 
   env: {
-    es6: true,
+    es2020: true,
     browser: false,
     node: true,
     jest: true,
@@ -49,6 +49,13 @@ module.exports = {
     'no-console': 'off',
     'no-undef-init': 'off',
     'no-await-in-loop': 'off',
+    'no-undef': 'off',
+    'no-unused-vars': 'off',
+    'no-restricted-globals': 'off',
+    'no-shadow': 'off',
+    'prefer-destructuring': 'off',
+    'no-multi-str': 'off',
+    'no-dupe-class-members': 'off',
 
     'unicorn/filename-case': 'off',
     'unicorn/prevent-abbreviations': 'off',
@@ -59,6 +66,7 @@ module.exports = {
     'import/prefer-default-export': 'off',
     'import/order': ['error', { 'newlines-between': 'always' }],
     'import/extensions': 'off',
+    'import/export': 'off',
 
     'prettier/prettier': 'error',
 
@@ -77,6 +85,14 @@ module.exports = {
     '@typescript-eslint/indent': 'off',
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
+    '@typescript-eslint/generic-type-naming': ['error', '^T[A-Z][a-zA-Z]+$'],
+    '@typescript-eslint/no-this-alias': 'error',
+    '@typescript-eslint/restrict-plus-operands': 'error',
+    '@typescript-eslint/prefer-interface': 'off',
+    '@typescript-eslint/interface-name-prefix': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/no-unused-vars': 'off',
 
     'jest/valid-describe': 'off',
   },
@@ -88,32 +104,4 @@ module.exports = {
       },
     },
   },
-
-  overrides: [
-    {
-      files: ['**/*.ts'],
-
-      rules: {
-        'no-undef': 'off',
-        'no-unused-vars': 'off',
-        'no-restricted-globals': 'off',
-        'no-shadow': 'off',
-        'prefer-destructuring': 'off',
-        'no-multi-str': 'off',
-        'no-dupe-class-members': 'off',
-
-        'import/export': 'off',
-
-        '@typescript-eslint/generic-type-naming': ['error', '^T[A-Z][a-zA-Z]+$'],
-        '@typescript-eslint/no-this-alias': 'error',
-        '@typescript-eslint/restrict-plus-operands': 'error',
-        '@typescript-eslint/prefer-interface': 'off',
-        '@typescript-eslint/interface-name-prefix': 'off',
-        '@typescript-eslint/no-explicit-any': 'off',
-        '@typescript-eslint/indent': 'off',
-        '@typescript-eslint/explicit-function-return-type': 'off',
-        '@typescript-eslint/no-unused-vars': 'off',
-      },
-    },
-  ],
 };

@@ -32,31 +32,13 @@ function makeMigrationFilename(
 }
 
 function makeMigrationId(date: Date): MigrationId {
-  const yearString = date
-    .getUTCFullYear()
-    .toString()
-    .padStart(4, '0');
+  const yearString = date.getUTCFullYear().toString().padStart(4, '0');
   const monthString = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-  const dayString = date
-    .getUTCDate()
-    .toString()
-    .padStart(2, '0');
-  const hourString = date
-    .getUTCHours()
-    .toString()
-    .padStart(2, '0');
-  const minuteString = date
-    .getUTCMinutes()
-    .toString()
-    .padStart(2, '0');
-  const secondString = date
-    .getUTCSeconds()
-    .toString()
-    .padStart(2, '0');
-  const millisecondString = date
-    .getUTCMilliseconds()
-    .toString()
-    .padStart(4, '0');
+  const dayString = date.getUTCDate().toString().padStart(2, '0');
+  const hourString = date.getUTCHours().toString().padStart(2, '0');
+  const minuteString = date.getUTCMinutes().toString().padStart(2, '0');
+  const secondString = date.getUTCSeconds().toString().padStart(2, '0');
+  const millisecondString = date.getUTCMilliseconds().toString().padStart(4, '0');
 
   const migrationId = BigInt(
     yearString +

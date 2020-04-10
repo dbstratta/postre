@@ -24,7 +24,7 @@ export async function doRun(): Promise<void> {
     .command('initialize [directoryPath]')
     .description('initialize postre configuration file')
     .alias('init')
-    .action(async directoryPath => {
+    .action(async (directoryPath) => {
       await tryOrLogError(async () => {
         await initialize({ directoryPath });
       });
@@ -33,7 +33,7 @@ export async function doRun(): Promise<void> {
   commander
     .command('create-migration <migrationName>')
     .description('create an empty migration file')
-    .action(async migrationName => {
+    .action(async (migrationName) => {
       await tryOrLogError(async () => {
         await createMigration(migrationName);
       });
@@ -50,7 +50,7 @@ export async function doRun(): Promise<void> {
       parseBigintOption,
     )
     .option('--all', 'migrate all pending migrations')
-    .action(async options => {
+    .action(async (options) => {
       await tryOrLogError(async () => {
         await migrate({ toMigrationId: options.to });
       });
@@ -65,7 +65,7 @@ export async function doRun(): Promise<void> {
       parseBigintOption,
     )
     .option('--all', 'rollback all applied migrations')
-    .action(async options => {
+    .action(async (options) => {
       await tryOrLogError(async () => {
         await rollback({
           toMigrationId: options.to,

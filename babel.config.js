@@ -1,15 +1,14 @@
 module.exports = api => {
-  const babelEnv = api.env();
-
   const presets = [
     [
       '@babel/preset-env',
       {
         targets: {
-          node: '13.8.0',
+          node: '13.11.0',
         },
         debug: !!process.env.DEBUG_BABEL,
         useBuiltIns: false,
+        bugfixes: true,
       },
     ],
     '@babel/preset-typescript',
@@ -17,9 +16,9 @@ module.exports = api => {
 
   const plugins = ['dynamic-import-node'];
 
-  const ignore = getIgnoredPaths(babelEnv);
+  const ignore = getIgnoredPaths(api);
 
-  const sourceMaps = babelEnv === 'production' ? true : 'inline';
+  const sourceMaps = api.env('production') ? true : 'inline';
 
   return {
     presets,
@@ -29,12 +28,12 @@ module.exports = api => {
   };
 };
 
-function getIgnoredPaths(babelEnv) {
-  const baseIgnorePaths = ['node_modules'];
+function getIgnoredPaths(api) {
+  const ignorePaths = ['node_modules'];
 
-  if (babelEnv === 'production') {
-    return [...baseIgnorePaths, '**/*.spec.ts', '**/*.test.ts', '**/*.d.ts'];
+  if (api.env('production')) {
+    ignorePaths.push('**/*.spec.ts', '**/*.test.ts', '**/*.d.ts');
   }
 
-  return baseIgnorePaths;
+  return ignorePaths;
 }

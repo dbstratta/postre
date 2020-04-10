@@ -139,7 +139,7 @@ async function migrateMigration(
   const startTimestamp = Date.now();
 
   const wasMigrated = await schemaMigrationsTableClient.doInTransaction(
-    async schemaMigrationsTableTransaction => {
+    async (schemaMigrationsTableTransaction) => {
       await lockMigrationsTable(schemaMigrationsTableTransaction, configuration);
 
       const migratedMigrationIds = await getMigratedMigrationIds(
@@ -155,7 +155,7 @@ async function migrateMigration(
         if (migration.disableTransaction) {
           await migration.migrate(migrationsClient);
         } else {
-          await migrationsClient.doInTransaction(async transaction => {
+          await migrationsClient.doInTransaction(async (transaction) => {
             await migration.migrate(transaction);
           });
         }

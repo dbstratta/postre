@@ -140,7 +140,7 @@ async function rollbackMigration(
   const startTimestamp = Date.now();
 
   const wasRollbacked = await schemaMigrationsTableClient.doInTransaction(
-    async schemaMigrationsTableTransaction => {
+    async (schemaMigrationsTableTransaction) => {
       await lockMigrationsTable(schemaMigrationsTableTransaction, configuration);
 
       const migratedMigrationIds = await getMigratedMigrationIds(
@@ -156,7 +156,7 @@ async function rollbackMigration(
         if (migration.disableTransaction) {
           await migration.rollback(migrationsClient);
         } else {
-          await migrationsClient.doInTransaction(async transaction => {
+          await migrationsClient.doInTransaction(async (transaction) => {
             await migration.rollback(transaction);
           });
         }
