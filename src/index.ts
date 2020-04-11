@@ -1,8 +1,6 @@
-export {
-  sql,
+export type {
   QueryString,
   QueryValue,
-  makeParameterizedQuery,
   SqlObject,
   JoinObject,
   JoinSeparator,
@@ -10,7 +8,6 @@ export {
   AssignmentsInput,
   AssignmentsObject,
   AssignmentsRecord,
-  ObjectKind,
   OrObject,
   IdentifierObject,
   JoinValue,
@@ -21,18 +18,21 @@ export {
   SqlValue,
   UnsafeRawObject,
 } from './queryBuilders';
-export {
-  Client,
-  Pool,
-  PoolClient,
+export { sql, makeParameterizedQuery, ObjectKind } from './queryBuilders';
+export type {
   ClientConnectionOptions,
   ClientOptions,
   PoolClientOptions,
   PoolOptions,
-  Transaction,
   TransactionFunction,
-  TransactionIsolationLevel,
   TransactionOptions,
+} from './clients';
+export {
+  Client,
+  Pool,
+  PoolClient,
+  Transaction,
+  TransactionIsolationLevel,
   BaseClient,
 } from './clients';
 export { createClient, createPool } from './factories';

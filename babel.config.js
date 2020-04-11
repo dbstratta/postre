@@ -1,4 +1,4 @@
-module.exports = api => {
+module.exports = (api) => {
   const presets = [
     [
       '@babel/preset-env',
@@ -11,7 +11,7 @@ module.exports = api => {
         bugfixes: true,
       },
     ],
-    '@babel/preset-typescript',
+    ['@babel/preset-typescript'],
   ];
 
   const plugins = ['dynamic-import-node'];
