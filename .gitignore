@@ -8,6 +8,8 @@ dist
 coverage
 
 # Misc
+/migrations
+/postre.config.js
 /keys
 .env
 *.pyc

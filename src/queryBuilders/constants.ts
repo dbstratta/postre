@@ -1,4 +1,4 @@
-export const postreSymbol = Symbol('postre');
+export const postreSymbol = Symbol.for('postre');
 
 export const sqlTokens = {
   parameterPrefix: '$',
