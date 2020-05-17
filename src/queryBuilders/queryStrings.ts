@@ -224,22 +224,24 @@ function getSqlFragmentsFromJoinObject(joinObject: JoinObject): SqlFragment[] {
 }
 
 function getQueryValuesFromSqlValues(sqlValues: SqlValue[]): QueryValue[] {
-  const queryValues = sqlValues.flatMap(getQueryValuesFromSqlValue);
+  const queryValues = sqlValues.flatMap((value) => getQueryValuesFromSqlValue(value));
 
   return queryValues;
 }
 
 function getQueryValuesFromSqlValue(sqlValue: SqlValue): QueryValue[] {
   if (isSql(sqlValue)) {
-    return sqlValue.values.flatMap(getQueryValuesFromSqlValue);
+    return sqlValue.values.flatMap((value) => getQueryValuesFromSqlValue(value));
   }
 
   if (isAnd(sqlValue) || isOr(sqlValue)) {
-    return sqlValue.conditions.flatMap(getQueryValuesFromSqlValue);
+    return sqlValue.conditions.flatMap((condition) => getQueryValuesFromSqlValue(condition));
   }
 
   if (isAssignment(sqlValue)) {
-    return Object.values(sqlValue.assignments).flatMap(getQueryValuesFromSqlValue);
+    return Object.values(sqlValue.assignments).flatMap((value) =>
+      getQueryValuesFromSqlValue(value),
+    );
   }
 
   if (isJoin(sqlValue)) {

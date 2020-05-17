@@ -45,7 +45,7 @@ export function replaceLastValue<TValue>(array: TValue[], newLastValue: TValue):
 }
 
 export function stringifyIdentifierObject(identifierObject: IdentifierObject): string {
-  return identifierObject.names.map(quoteString).join('.');
+  return identifierObject.names.map((name) => quoteString(name)).join('.');
 }
 
 export function quoteString(value: string): string {

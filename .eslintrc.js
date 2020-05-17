@@ -26,9 +26,9 @@ module.exports = {
 
   env: {
     es2020: true,
-    browser: false,
     node: true,
     jest: true,
+    browser: false,
   },
 
   extends: [
@@ -60,6 +60,9 @@ module.exports = {
     'unicorn/filename-case': 'off',
     'unicorn/prevent-abbreviations': 'off',
     'unicorn/no-process-exit': 'off',
+    'unicorn/no-null': 'off',
+    'unicorn/no-reduce': 'off',
+    'unicorn/no-useless-undefined': 'off',
 
     'import/no-named-as-default': 'off',
     'import/no-extraneous-dependencies': 'off',

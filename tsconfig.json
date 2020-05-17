@@ -21,6 +21,14 @@
     "noUnusedParameters": false,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "src/**/*.js"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    ".eslintrc.js",
+    "lint-staged.config.js",
+    "prettier.config.js",
+    "babel.config.js",
+    "rollup.config.js"
+  ],
   "exclude": ["node_modules", "dist"]
 }

@@ -4,7 +4,7 @@ module.exports = (api) => {
       '@babel/preset-env',
       {
         targets: {
-          node: '13.11.0',
+          node: '14.2.0',
         },
         debug: !!process.env.DEBUG_BABEL,
         useBuiltIns: false,

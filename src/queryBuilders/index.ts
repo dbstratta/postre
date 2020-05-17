@@ -9,3 +9,4 @@ export * from './helpers';
 export * from './assignments';
 export * from './sql';
 export * from './queryStrings';
+export * from './insert';
