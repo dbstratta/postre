@@ -1,4 +1,5 @@
 import { PostreObject } from './types';
+import { sqlTokens } from './constants';
 import { sql } from './sql';
 
 export type IdentifiersAndVauesForInsert = {
@@ -16,7 +17,7 @@ export function getIdentifiersAndValuesForInsert(
   return doGetIdentifiersAndValuesForInsert(recordOrRecords);
 }
 
-export function doGetIdentifiersAndValuesForInsert(
+function doGetIdentifiersAndValuesForInsert(
   record: Record<string, any>,
 ): IdentifiersAndVauesForInsert {
   const entries = Object.entries(record).filter(([, value]) => value !== undefined);
@@ -47,17 +48,15 @@ function getIdentifiersAndValuesForInserts(
 }
 
 function getKeysForInserts(records: Record<string, any>[]): string[] {
-  const keysObject = records.reduce((acc, record) => {
+  const keySet = records.reduce<Set<string>>((partialKeySet, record) => {
     Object.keys(record).forEach((key) => {
-      if (!acc[key]) {
-        acc[key] = true;
-      }
+      partialKeySet.add(key);
     });
 
-    return acc;
-  }, {});
+    return partialKeySet;
+  }, new Set());
 
-  const keys = Object.keys(keysObject);
+  const keys = [...keySet.values()];
 
   return keys;
 }
@@ -66,7 +65,7 @@ function getValuesListForInserts(keys: string[], records: Record<string, any>[])
   const valuesList = records.map((record) => {
     const values = keys.map((key) => {
       if (record[key] === undefined) {
-        return sql.unsafeRaw('DEFAULT');
+        return sql.unsafeRaw(sqlTokens.default);
       }
 
       return record[key];

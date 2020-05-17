@@ -19,6 +19,7 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": false,
+    "resolveJsonModule": true,
     "skipLibCheck": true
   },
   "include": [

@@ -8,4 +8,5 @@ export const sqlTokens = {
   and: 'AND',
   or: 'OR',
   assignmentOperator: '=',
+  default: 'DEFAULT',
 } as const;

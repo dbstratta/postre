@@ -2,8 +2,7 @@ import commander from 'commander';
 
 import { initialize } from '../config';
 import { migrate, rollback, createMigration } from '../migrations';
-
-const pkg = require('../../package.json');
+import pkg from '../../package.json';
 
 const cliName = 'postre';
 const cliVersion = pkg.version;

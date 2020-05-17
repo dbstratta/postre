@@ -2,6 +2,7 @@ import babel from 'rollup-plugin-babel';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
+import json from '@rollup/plugin-json';
 import { preserveShebangs } from 'rollup-plugin-preserve-shebangs';
 import builtinModules from 'builtin-modules';
 
@@ -22,6 +23,7 @@ const commonPlugins = [
   resolve({ extensions }),
   commonjs(),
   babel({ extensions }),
+  json({ compact: true }),
 ];
 
 export default [
