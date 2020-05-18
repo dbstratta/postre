@@ -68,6 +68,7 @@ export async function doRun(): Promise<void> {
       await tryOrLogError(async () => {
         await rollback({
           toMigrationId: options.to,
+          all: options.all,
         });
       });
     });

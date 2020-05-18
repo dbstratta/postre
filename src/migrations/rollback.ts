@@ -25,6 +25,7 @@ import {
 
 export type RollbackArgs = {
   toMigrationId?: MigrationId;
+  all?: boolean;
 };
 
 export async function rollback(args: RollbackArgs): Promise<void> {
@@ -54,8 +55,15 @@ export async function rollback(args: RollbackArgs): Promise<void> {
         args.toMigrationId,
         migrations,
       );
-    } else {
+    } else if (args.all) {
       rollbackedMigrations = await rollbackAll(
+        migrationsClient,
+        schemaMigrationsTableClient,
+        configuration,
+        migrations,
+      );
+    } else {
+      rollbackedMigrations = await rollbackOne(
         migrationsClient,
         schemaMigrationsTableClient,
         configuration,
@@ -95,17 +103,19 @@ async function rollbackTo(
   const reversedMigrations = [...migrations].reverse();
 
   for (const migration of reversedMigrations) {
-    if (migration.id >= toMigrationId) {
-      const wasRollbacked = await rollbackMigration(
-        migrationsClient,
-        schemaMigrationsTableClient,
-        configuration,
-        migration,
-      );
+    if (migration.id < toMigrationId) {
+      break;
+    }
 
-      if (wasRollbacked) {
-        rollbackedMigrations += 1;
-      }
+    const wasRollbacked = await rollbackMigration(
+      migrationsClient,
+      schemaMigrationsTableClient,
+      configuration,
+      migration,
+    );
+
+    if (wasRollbacked) {
+      rollbackedMigrations += 1;
     }
   }
 
@@ -118,15 +128,62 @@ async function rollbackAll(
   configuration: MigrationConfiguration,
   migrations: Migration[],
 ): Promise<number> {
-  const latestMigration = migrations[0];
+  const earliestMigration = migrations[0];
 
   return rollbackTo(
     migrationsClient,
     schemaMigrationsTableClient,
     configuration,
-    latestMigration.id,
+    earliestMigration.id,
     migrations,
   );
+}
+
+async function rollbackOne(
+  migrationsClient: Client,
+  schemaMigrationsTableClient: Client,
+  configuration: MigrationConfiguration,
+  migrations: Migration[],
+): Promise<number> {
+  const rollbackedMigrations = await rollbackN(
+    migrationsClient,
+    schemaMigrationsTableClient,
+    configuration,
+    1,
+    migrations,
+  );
+
+  return rollbackedMigrations;
+}
+
+async function rollbackN(
+  migrationsClient: Client,
+  schemaMigrationsTableClient: Client,
+  configuration: MigrationConfiguration,
+  numberOfMigrationsToRollback: number,
+  migrations: Migration[],
+): Promise<number> {
+  let rollbackedMigrations = 0;
+  const reversedMigrations = [...migrations].reverse();
+
+  for (const migration of reversedMigrations) {
+    if (rollbackedMigrations === numberOfMigrationsToRollback) {
+      break;
+    }
+
+    const wasRollbacked = await rollbackMigration(
+      migrationsClient,
+      schemaMigrationsTableClient,
+      configuration,
+      migration,
+    );
+
+    if (wasRollbacked) {
+      rollbackedMigrations += 1;
+    }
+  }
+
+  return rollbackedMigrations;
 }
 
 async function rollbackMigration(
