@@ -64,7 +64,7 @@
     "babel-jest": "26.0.1",
     "babel-plugin-dynamic-import-node": "2.3.3",
     "builtin-modules": "3.1.0",
-    "codecov": "3.6.5",
+    "codecov": "3.7.1",
     "cross-env": "7.0.2",
     "eslint": "7.0.0",
     "eslint-config-airbnb-base": "14.1.0",
