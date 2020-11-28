@@ -1,11 +1,13 @@
 {
   "name": "postre",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "license": "MIT",
   "private": false,
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
-  "bin": "dist/bin.js",
+  "bin": {
+    "postre": "dist/bin.js"
+  },
   "types": "dist/src/index.d.ts",
   "author": {
     "name": "Diego Stratta",
