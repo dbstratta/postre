@@ -1,4 +1,8 @@
-import { TransactionFunction, StartTransactionOptions, ClientOverrideOptions } from './BaseClient';
+import {
+  TransactionFunction,
+  StartTransactionOptions,
+  ClientOverrideOptions,
+} from './BaseClient';
 import { Client } from './Client';
 import { PoolClient } from './PoolClient';
 import { Transaction } from './Transaction';
@@ -16,7 +20,10 @@ export async function doInTransaction<TReturn>(
       client: transaction,
     };
 
-    const result = await transactionFunction(transaction, optionsWithTransaction);
+    const result = await transactionFunction(
+      transaction,
+      optionsWithTransaction,
+    );
 
     await transaction.commit();
 

@@ -14,9 +14,13 @@ export type AssignmentsObject = PostreObject & {
   assignments: AssignmentsRecord;
 };
 
-export function assignments(assignmentList: AssignmentsInput): AssignmentsObject {
+export function assignments(
+  assignmentList: AssignmentsInput,
+): AssignmentsObject {
   const filteredAssignments = Object.fromEntries(
-    Object.entries(assignmentList).filter(([key, value]) => value !== undefined),
+    Object.entries(assignmentList).filter(
+      ([key, value]) => value !== undefined,
+    ),
   ) as AssignmentsRecord;
 
   return {

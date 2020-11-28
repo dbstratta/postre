@@ -1,7 +1,7 @@
 import { makeParameterizedQuery } from './queryStrings';
 import { sql } from './sql';
 
-describe(makeParameterizedQuery.name, () => {
+describe('makeParameterizedQuery', () => {
   test('makes correct query when there are no interpolations', () => {
     const [queryString, queryValues] = makeParameterizedQuery(sql`
       SELECT 1

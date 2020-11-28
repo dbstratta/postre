@@ -1,4 +1,9 @@
-import { makeParameterizedQuery, SqlObject, QueryValue, QueryString } from '../queryBuilders';
+import {
+  makeParameterizedQuery,
+  SqlObject,
+  QueryValue,
+  QueryString,
+} from '../queryBuilders';
 import { BaseClient } from '../clients';
 
 import { ExecutorOptions, RowMode, ExecutorLogging } from './types';
@@ -25,7 +30,8 @@ export async function query<TResult>(
   const rawResult = await client.getPgClient().query({
     text: queryString,
     values,
-    rowMode: options.rowMode === RowMode.Array ? RowMode.Array : (undefined as any),
+    rowMode:
+      options.rowMode === RowMode.Array ? RowMode.Array : (undefined as any),
   });
 
   const result: QueryResult<TResult> = {

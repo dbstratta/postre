@@ -7,7 +7,10 @@ import { loadConfiguration, MigrationConfiguration } from '../config';
 import { spinner } from '../helpers';
 
 import { MigrationId } from './types';
-import { SupportedFileExtensions, migrationFilenameSeparator } from './constants';
+import {
+  SupportedFileExtensions,
+  migrationFilenameSeparator,
+} from './constants';
 import { javaScriptMigrationFileTemplate } from './templates';
 import { createMigrationFilesDirectory } from './migrationFiles';
 
@@ -38,7 +41,10 @@ function makeMigrationId(date: Date): MigrationId {
   const hourString = date.getUTCHours().toString().padStart(2, '0');
   const minuteString = date.getUTCMinutes().toString().padStart(2, '0');
   const secondString = date.getUTCSeconds().toString().padStart(2, '0');
-  const millisecondString = date.getUTCMilliseconds().toString().padStart(4, '0');
+  const millisecondString = date
+    .getUTCMilliseconds()
+    .toString()
+    .padStart(4, '0');
 
   const migrationId = BigInt(
     yearString +
@@ -57,7 +63,10 @@ async function writeMigrationToFile(
   configuration: MigrationConfiguration,
   filename: string,
 ): Promise<void> {
-  const filepath = path.resolve(configuration.migrationFilesDirectoryPath, filename);
+  const filepath = path.resolve(
+    configuration.migrationFilesDirectoryPath,
+    filename,
+  );
 
   spinner.start(`creating ${greenBright(filepath)}`);
 

@@ -37,7 +37,10 @@ export async function rollback(args: RollbackArgs): Promise<void> {
 
   const schemaMigrationsTableClient = await setupClient(configuration);
 
-  await createSchemaMigrationsTableIfItDoesntExist(schemaMigrationsTableClient, configuration);
+  await createSchemaMigrationsTableIfItDoesntExist(
+    schemaMigrationsTableClient,
+    configuration,
+  );
 
   let migrationsClient: Client | undefined = undefined;
 
@@ -83,7 +86,10 @@ export async function rollback(args: RollbackArgs): Promise<void> {
   }
 
   const finishTimestamp = Date.now();
-  const durationInSecondsString = makeDurationInSecondsString(startTimestamp, finishTimestamp);
+  const durationInSecondsString = makeDurationInSecondsString(
+    startTimestamp,
+    finishTimestamp,
+  );
 
   spinner.succeed(
     `rollbacked ${rollbackedMigrations} migrations in ${durationInSecondsString} seconds`,
@@ -198,7 +204,10 @@ async function rollbackMigration(
 
   const wasRollbacked = await schemaMigrationsTableClient.doInTransaction(
     async (schemaMigrationsTableTransaction) => {
-      await lockMigrationsTable(schemaMigrationsTableTransaction, configuration);
+      await lockMigrationsTable(
+        schemaMigrationsTableTransaction,
+        configuration,
+      );
 
       const migratedMigrationIds = await getMigratedMigrationIds(
         schemaMigrationsTableTransaction,
@@ -210,13 +219,11 @@ async function rollbackMigration(
       }
 
       try {
-        if (migration.disableTransaction) {
-          await migration.rollback(migrationsClient);
-        } else {
-          await migrationsClient.doInTransaction(async (transaction) => {
-            await migration.rollback(transaction);
-          });
-        }
+        await (migration.disableTransaction
+          ? migration.rollback(migrationsClient)
+          : migrationsClient.doInTransaction(async (transaction) => {
+              await migration.rollback(transaction);
+            }));
       } catch (error) {
         spinner.fail(`${redBright(migration.filename)} failed to rollback`);
 
@@ -234,11 +241,16 @@ async function rollbackMigration(
   );
 
   const finishTimestamp = Date.now();
-  const durationInSecondsString = makeDurationInSecondsString(startTimestamp, finishTimestamp);
+  const durationInSecondsString = makeDurationInSecondsString(
+    startTimestamp,
+    finishTimestamp,
+  );
 
   if (wasRollbacked) {
     spinner.succeed(
-      `${greenBright(migration.filename)} rollbacked in ${durationInSecondsString} seconds`,
+      `${greenBright(
+        migration.filename,
+      )} rollbacked in ${durationInSecondsString} seconds`,
     );
   }
 

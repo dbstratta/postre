@@ -23,9 +23,17 @@ import { JoinObject } from './join';
 
 export type QueryString = string;
 
-export type QueryValue = object | string | number | boolean | null;
+export type QueryValue =
+  | QueryValue[]
+  | { [key: string]: QueryValue }
+  | string
+  | number
+  | boolean
+  | null;
 
-export function makeParameterizedQuery(sqlObject: SqlObject): [QueryString, QueryValue[]] {
+export function makeParameterizedQuery(
+  sqlObject: SqlObject,
+): [QueryString, QueryValue[]] {
   const flattenedSqlFragments = flattenSqlFragments(sqlObject);
 
   const queryString = makeParameterizedQueryString(flattenedSqlFragments);
@@ -47,33 +55,48 @@ function flattenSqlFragments(sqlObject: SqlObject): SqlFragment[] {
       if (isSql(sqlValue)) {
         const flattenedSubFragments = flattenSqlFragments(sqlValue);
 
-        [stringToAppend, stringsToPush] = getStringToAppendAndStringsToPushForSqlObject(
+        [
+          stringToAppend,
+          stringsToPush,
+        ] = getStringToAppendAndStringsToPushForSqlObject(
           flattenedSubFragments,
           nextOriginalFragment,
         );
       } else if (isAnd(sqlValue) || isOr(sqlValue)) {
         const flattenedSubFragments = getSqlFragmentsFromLogicObject(sqlValue);
 
-        [stringToAppend, stringsToPush] = getStringToAppendAndStringsToPushForSqlObject(
+        [
+          stringToAppend,
+          stringsToPush,
+        ] = getStringToAppendAndStringsToPushForSqlObject(
           flattenedSubFragments,
           nextOriginalFragment,
         );
       } else if (isAssignment(sqlValue)) {
-        const flattenedSubFragments = getSqlFragmentsFromAssignmentObject(sqlValue);
+        const flattenedSubFragments = getSqlFragmentsFromAssignmentObject(
+          sqlValue,
+        );
 
-        [stringToAppend, stringsToPush] = getStringToAppendAndStringsToPushForSqlObject(
+        [
+          stringToAppend,
+          stringsToPush,
+        ] = getStringToAppendAndStringsToPushForSqlObject(
           flattenedSubFragments,
           nextOriginalFragment,
         );
       } else if (isJoin(sqlValue)) {
         const flattenedSubFragments = getSqlFragmentsFromJoinObject(sqlValue);
 
-        [stringToAppend, stringsToPush] = getStringToAppendAndStringsToPushForSqlObject(
+        [
+          stringToAppend,
+          stringsToPush,
+        ] = getStringToAppendAndStringsToPushForSqlObject(
           flattenedSubFragments,
           nextOriginalFragment,
         );
       } else if (isIdentifier(sqlValue)) {
-        stringToAppend = stringifyIdentifierObject(sqlValue) + nextOriginalFragment;
+        stringToAppend =
+          stringifyIdentifierObject(sqlValue) + nextOriginalFragment;
         stringsToPush = [];
       } else if (isUnsafeRaw(sqlValue)) {
         stringToAppend = sqlValue.unsafeString + nextOriginalFragment;
@@ -83,7 +106,10 @@ function flattenSqlFragments(sqlObject: SqlObject): SqlFragment[] {
         stringsToPush = [nextOriginalFragment];
       }
 
-      appendStringToLastElementInPlace(partialSqlFragments, stringToAppend).push(...stringsToPush);
+      appendStringToLastElementInPlace(
+        partialSqlFragments,
+        stringToAppend,
+      ).push(...stringsToPush);
 
       return partialSqlFragments;
     },
@@ -93,45 +119,47 @@ function flattenSqlFragments(sqlObject: SqlObject): SqlFragment[] {
   return flattenedSqlFragments;
 }
 
-function getSqlFragmentsFromLogicObject(logicObject: AndObject | OrObject): SqlFragment[] {
+function getSqlFragmentsFromLogicObject(
+  logicObject: AndObject | OrObject,
+): SqlFragment[] {
   const sqlFragments = logicObject.conditions.reduce(
     (partialSqlFragments: SqlFragment[], condition, conditionIndex) => {
       let stringToAppend: string;
       let stringsToPush: string[];
 
-      const logicalOperatorSqlToken = getLogicalOperatorSqlTokenByLogicObjectKind(logicObject.kind);
+      const logicalOperatorSqlToken = getLogicalOperatorSqlTokenByLogicObjectKind(
+        logicObject.kind,
+      );
 
       if (isSql(condition)) {
         const subFragments = flattenSqlFragments(condition);
 
-        if (conditionIndex === 0) {
-          stringToAppend = subFragments[0];
-        } else {
-          stringToAppend = ` ${logicalOperatorSqlToken} ${subFragments[0]}`;
-        }
+        stringToAppend =
+          conditionIndex === 0
+            ? subFragments[0]
+            : ` ${logicalOperatorSqlToken} ${subFragments[0]}`;
 
         stringsToPush = subFragments.slice(1);
       } else if (isAnd(condition) || isOr(condition)) {
         const subFragments = getSqlFragmentsFromLogicObject(condition);
 
-        if (conditionIndex === 0) {
-          stringToAppend = subFragments[0];
-        } else {
-          stringToAppend = ` ${logicalOperatorSqlToken} ${subFragments[0]}`;
-        }
+        stringToAppend =
+          conditionIndex === 0
+            ? subFragments[0]
+            : ` ${logicalOperatorSqlToken} ${subFragments[0]}`;
 
         stringsToPush = subFragments.slice(1);
       } else {
-        if (conditionIndex === 0) {
-          stringToAppend = '';
-        } else {
-          stringToAppend = ` ${logicalOperatorSqlToken} `;
-        }
+        stringToAppend =
+          conditionIndex === 0 ? '' : ` ${logicalOperatorSqlToken} `;
 
         stringsToPush = [''];
       }
 
-      appendStringToLastElementInPlace(partialSqlFragments, stringToAppend).push(...stringsToPush);
+      appendStringToLastElementInPlace(
+        partialSqlFragments,
+        stringToAppend,
+      ).push(...stringsToPush);
 
       return partialSqlFragments;
     },
@@ -146,7 +174,9 @@ function getSqlFragmentsFromLogicObject(logicObject: AndObject | OrObject): SqlF
   return sqlFragments;
 }
 
-function getSqlFragmentsFromAssignmentObject(assignmentObject: AssignmentsObject): SqlFragment[] {
+function getSqlFragmentsFromAssignmentObject(
+  assignmentObject: AssignmentsObject,
+): SqlFragment[] {
   const sqlFragments = Object.entries(assignmentObject.assignments).reduce(
     (partialSqlFragments: SqlFragment[], [key, value], assignmentIndex) => {
       if (assignmentIndex !== 0) {
@@ -171,7 +201,10 @@ function getSqlFragmentsFromAssignmentObject(assignmentObject: AssignmentsObject
         stringsToPush = [''];
       }
 
-      appendStringToLastElementInPlace(partialSqlFragments, stringToAppend).push(...stringsToPush);
+      appendStringToLastElementInPlace(
+        partialSqlFragments,
+        stringToAppend,
+      ).push(...stringsToPush);
 
       return partialSqlFragments;
     },
@@ -207,12 +240,16 @@ function getSqlFragmentsFromJoinObject(joinObject: JoinObject): SqlFragment[] {
         stringsToPush = [''];
       }
 
-      appendStringToLastElementInPlace(partialSqlFragments, stringToAppend).push(...stringsToPush);
+      appendStringToLastElementInPlace(
+        partialSqlFragments,
+        stringToAppend,
+      ).push(...stringsToPush);
 
       if (valueIndex !== joinObject.values.length - 1) {
-        appendStringToLastElementInPlace(partialSqlFragments, separatorSqlFragments[0]).push(
-          ...separatorSqlFragments.slice(1),
-        );
+        appendStringToLastElementInPlace(
+          partialSqlFragments,
+          separatorSqlFragments[0],
+        ).push(...separatorSqlFragments.slice(1));
       }
 
       return partialSqlFragments;
@@ -224,18 +261,24 @@ function getSqlFragmentsFromJoinObject(joinObject: JoinObject): SqlFragment[] {
 }
 
 function getQueryValuesFromSqlValues(sqlValues: SqlValue[]): QueryValue[] {
-  const queryValues = sqlValues.flatMap((value) => getQueryValuesFromSqlValue(value));
+  const queryValues = sqlValues.flatMap((value) =>
+    getQueryValuesFromSqlValue(value),
+  );
 
   return queryValues;
 }
 
 function getQueryValuesFromSqlValue(sqlValue: SqlValue): QueryValue[] {
   if (isSql(sqlValue)) {
-    return sqlValue.values.flatMap((value) => getQueryValuesFromSqlValue(value));
+    return sqlValue.values.flatMap((value) =>
+      getQueryValuesFromSqlValue(value),
+    );
   }
 
   if (isAnd(sqlValue) || isOr(sqlValue)) {
-    return sqlValue.conditions.flatMap((condition) => getQueryValuesFromSqlValue(condition));
+    return sqlValue.conditions.flatMap((condition) =>
+      getQueryValuesFromSqlValue(condition),
+    );
   }
 
   if (isAssignment(sqlValue)) {
@@ -276,14 +319,19 @@ function getQueryValuesFromJoinObject(joinObject: JoinObject): QueryValue[] {
   return queryValues;
 }
 
-function makeParameterizedQueryString(sqlFragments: SqlFragment[]): QueryString {
-  const queryString = sqlFragments.reduce((partialQueryString, queryFragment, index) => {
-    if (index === 0) {
-      return partialQueryString + queryFragment;
-    }
+function makeParameterizedQueryString(
+  sqlFragments: SqlFragment[],
+): QueryString {
+  const queryString = sqlFragments.reduce(
+    (partialQueryString, queryFragment, index) => {
+      if (index === 0) {
+        return partialQueryString + queryFragment;
+      }
 
-    return partialQueryString + makeParameterString(index) + queryFragment;
-  }, '');
+      return partialQueryString + makeParameterString(index) + queryFragment;
+    },
+    '',
+  );
 
   return queryString;
 }

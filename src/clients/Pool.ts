@@ -1,6 +1,10 @@
 import * as pg from 'pg';
 
-import { BaseClient, StartTransactionOptions, TransactionFunction } from './BaseClient';
+import {
+  BaseClient,
+  StartTransactionOptions,
+  TransactionFunction,
+} from './BaseClient';
 import { PoolClient } from './PoolClient';
 import { Transaction } from './Transaction';
 import { ClientConnectionOptions } from './types';
@@ -52,7 +56,9 @@ export class Pool extends BaseClient {
     return this.pgPool;
   }
 
-  public async startTransaction(options?: StartTransactionOptions): Promise<Transaction<any>> {
+  public async startTransaction(
+    options?: StartTransactionOptions,
+  ): Promise<Transaction<any>> {
     if (options && options.client) {
       const { client, ...restOfOptions } = options;
 

@@ -12,4 +12,7 @@ export enum RowMode {
 
 export type ExecutorLogging = QueryLoggerFunction | undefined;
 
-export type QueryLoggerFunction = (queryString: QueryString, queryValues: QueryValue[]) => void;
+export type QueryLoggerFunction = (
+  queryString: QueryString,
+  queryValues: QueryValue[],
+) => void;

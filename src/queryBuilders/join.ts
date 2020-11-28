@@ -13,7 +13,10 @@ export type JoinObject = PostreObject & {
   separator: JoinSeparator;
 };
 
-export function join(values: JoinValue[], separator: JoinSeparator): JoinObject {
+export function join(
+  values: JoinValue[],
+  separator: JoinSeparator,
+): JoinObject {
   return {
     kind: ObjectKind.Join,
     values,

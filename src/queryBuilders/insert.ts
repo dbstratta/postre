@@ -20,7 +20,9 @@ export function getIdentifiersAndValuesForInsert(
 function doGetIdentifiersAndValuesForInsert(
   record: Record<string, any>,
 ): IdentifiersAndVauesForInsert {
-  const entries = Object.entries(record).filter(([, value]) => value !== undefined);
+  const entries = Object.entries(record).filter(
+    ([, value]) => value !== undefined,
+  );
 
   const keys = entries.map((entry) => entry[0]);
   const valueList = entries.map((entry) => entry[1]);
@@ -61,7 +63,10 @@ function getKeysForInserts(records: Record<string, any>[]): string[] {
   return keys;
 }
 
-function getValuesListForInserts(keys: string[], records: Record<string, any>[]): any[][] {
+function getValuesListForInserts(
+  keys: string[],
+  records: Record<string, any>[],
+): any[][] {
   const valuesList = records.map((record) => {
     const values = keys.map((key) => {
       if (record[key] === undefined) {

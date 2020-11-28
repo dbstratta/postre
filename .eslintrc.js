@@ -4,7 +4,7 @@ module.exports = {
   parser: '@typescript-eslint/parser',
 
   parserOptions: {
-    ecmaVersion: 2020,
+    ecmaVersion: 2021,
     sourceType: 'module',
     project: './tsconfig.json',
     tsconfigRootDir: './',
@@ -25,7 +25,7 @@ module.exports = {
   ],
 
   env: {
-    es2020: true,
+    es2021: true,
     node: true,
     jest: true,
     browser: false,
@@ -88,7 +88,6 @@ module.exports = {
     '@typescript-eslint/indent': 'off',
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
-    '@typescript-eslint/generic-type-naming': ['error', '^T[A-Z][a-zA-Z]+$'],
     '@typescript-eslint/no-this-alias': 'error',
     '@typescript-eslint/restrict-plus-operands': 'error',
     '@typescript-eslint/prefer-interface': 'off',

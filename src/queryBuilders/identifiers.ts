@@ -6,8 +6,12 @@ export type IdentifierObject = PostreObject & {
   names: [string] | [string, string];
 };
 
-export function identifier(nameOrNames: string | [string, string]): IdentifierObject {
-  const names = Array.isArray(nameOrNames) ? nameOrNames : ([nameOrNames] as [string]);
+export function identifier(
+  nameOrNames: string | [string, string],
+): IdentifierObject {
+  const names = Array.isArray(nameOrNames)
+    ? nameOrNames
+    : ([nameOrNames] as [string]);
 
   const identifierObject: IdentifierObject = {
     kind: ObjectKind.Identifier,

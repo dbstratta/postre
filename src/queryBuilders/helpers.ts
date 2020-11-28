@@ -8,31 +8,31 @@ import { IdentifierObject } from './identifiers';
 import { AssignmentsObject } from './assignments';
 import { JoinObject } from './join';
 
-export function isSql(value: any): value is SqlObject {
+export function isSql(value: unknown): value is SqlObject {
   return isPostreObject(value) && value.kind === ObjectKind.Sql;
 }
 
-export function isOr(value: any): value is OrObject {
+export function isOr(value: unknown): value is OrObject {
   return isPostreObject(value) && value.kind === ObjectKind.And;
 }
 
-export function isAnd(value: any): value is AndObject {
+export function isAnd(value: unknown): value is AndObject {
   return isPostreObject(value) && value.kind === ObjectKind.Or;
 }
 
-export function isIdentifier(value: any): value is IdentifierObject {
+export function isIdentifier(value: unknown): value is IdentifierObject {
   return isPostreObject(value) && value.kind === ObjectKind.Identifier;
 }
 
-export function isAssignment(value: any): value is AssignmentsObject {
+export function isAssignment(value: unknown): value is AssignmentsObject {
   return isPostreObject(value) && value.kind === ObjectKind.Assignments;
 }
 
-export function isJoin(value: any): value is JoinObject {
+export function isJoin(value: unknown): value is JoinObject {
   return isPostreObject(value) && value.kind === ObjectKind.Join;
 }
 
-export function isUnsafeRaw(value: any): value is UnsafeRawObject {
+export function isUnsafeRaw(value: unknown): value is UnsafeRawObject {
   return isPostreObject(value) && value.kind === ObjectKind.UnsafeRaw;
 }
 
@@ -40,11 +40,16 @@ function isPostreObject(value: any): value is PostreObject {
   return typeof value === 'object' && value && value[postreSymbol];
 }
 
-export function replaceLastValue<TValue>(array: TValue[], newLastValue: TValue): TValue[] {
+export function replaceLastValue<TValue>(
+  array: TValue[],
+  newLastValue: TValue,
+): TValue[] {
   return array.slice(0, -1).concat(newLastValue);
 }
 
-export function stringifyIdentifierObject(identifierObject: IdentifierObject): string {
+export function stringifyIdentifierObject(
+  identifierObject: IdentifierObject,
+): string {
   return identifierObject.names.map((name) => quoteString(name)).join('.');
 }
 

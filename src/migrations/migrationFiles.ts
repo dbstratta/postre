@@ -20,19 +20,26 @@ export type ImportedMigration = {
   disableTransaction?: boolean;
 };
 
-export type MigrationFunction = (client: Client | Transaction<Client>) => Promise<void>;
+export type MigrationFunction = (
+  client: Client | Transaction<Client>,
+) => Promise<void>;
 
 export async function findAndImportAllMigrations(
   configuration: MigrationConfiguration,
 ): Promise<Migration[]> {
   const migrationFilenames = await getMigrationFilenames(configuration);
 
-  const migrations = await importAllMigrations(migrationFilenames, configuration);
+  const migrations = await importAllMigrations(
+    migrationFilenames,
+    configuration,
+  );
 
   return migrations;
 }
 
-async function getMigrationFilenames(configuration: MigrationConfiguration): Promise<string[]> {
+async function getMigrationFilenames(
+  configuration: MigrationConfiguration,
+): Promise<string[]> {
   const dirEntities: Dirent[] = await fs.promises.readdir(
     configuration.migrationFilesDirectoryPath,
     {
@@ -59,7 +66,12 @@ async function importAllMigrations(
   try {
     migrations = await Promise.all(
       migrationFilenames.map((migrationFilename) =>
-        importMigration(path.resolve(configuration.migrationFilesDirectoryPath, migrationFilename)),
+        importMigration(
+          path.resolve(
+            configuration.migrationFilesDirectoryPath,
+            migrationFilename,
+          ),
+        ),
       ),
     );
   } catch (error) {
@@ -73,7 +85,9 @@ async function importAllMigrations(
   return migrations;
 }
 
-export async function importMigration(migrationPath: MigrationFilename): Promise<Migration> {
+export async function importMigration(
+  migrationPath: MigrationFilename,
+): Promise<Migration> {
   const importedMigration = await import(migrationPath);
 
   validateMigration(migrationPath, importedMigration);
@@ -89,11 +103,15 @@ export async function importMigration(migrationPath: MigrationFilename): Promise
   return migration;
 }
 
-export function validateMigration(migrationFilename: MigrationFilename, migration: any): void {
+export function validateMigration(
+  migrationFilename: MigrationFilename,
+  migration: unknown,
+): void {
   if (
     typeof migration !== 'object' ||
-    typeof migration.migrate !== 'function' ||
-    typeof migration.rollback !== 'function'
+    migration === null ||
+    typeof (migration as ImportedMigration).migrate !== 'function' ||
+    typeof (migration as ImportedMigration).rollback !== 'function'
   ) {
     throw new MigrationError(`Invalid file ${migrationFilename}`);
   }

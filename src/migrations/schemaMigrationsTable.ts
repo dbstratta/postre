@@ -62,7 +62,9 @@ export async function getMigratedMigrationIds(
       id ASC
   `);
 
-  const migrationIds = migrationIdStrings.map((migrationIdString) => BigInt(migrationIdString));
+  const migrationIds = migrationIdStrings.map((migrationIdString) =>
+    BigInt(migrationIdString),
+  );
 
   return migrationIds;
 }

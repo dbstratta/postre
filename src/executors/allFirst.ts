@@ -5,7 +5,7 @@ import { SqlObject } from '../queryBuilders';
 import { query } from './query';
 import { RowMode, ExecutorOptions } from './types';
 
-export type AllFirstQueryOptions = {} & Pick<ExecutorOptions, 'logging'>;
+export type AllFirstQueryOptions = Pick<ExecutorOptions, 'logging'>;
 
 export async function allFirst<TResult>(
   client: BaseClient,

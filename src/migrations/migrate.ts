@@ -36,7 +36,10 @@ export async function migrate(args: MigrateArgs): Promise<void> {
 
   const schemaMigrationsTableClient = await setupClient(configuration);
 
-  await createSchemaMigrationsTableIfItDoesntExist(schemaMigrationsTableClient, configuration);
+  await createSchemaMigrationsTableIfItDoesntExist(
+    schemaMigrationsTableClient,
+    configuration,
+  );
 
   let migrationsClient: Client | undefined = undefined;
 
@@ -46,22 +49,20 @@ export async function migrate(args: MigrateArgs): Promise<void> {
   try {
     migrationsClient = await setupClient(configuration);
 
-    if (args.toMigrationId) {
-      migrationsMigrated = await migrateTo(
-        migrationsClient,
-        schemaMigrationsTableClient,
-        configuration,
-        args.toMigrationId,
-        migrations,
-      );
-    } else {
-      migrationsMigrated = await migrateAll(
-        migrationsClient,
-        schemaMigrationsTableClient,
-        configuration,
-        migrations,
-      );
-    }
+    migrationsMigrated = await (args.toMigrationId
+      ? migrateTo(
+          migrationsClient,
+          schemaMigrationsTableClient,
+          configuration,
+          args.toMigrationId,
+          migrations,
+        )
+      : migrateAll(
+          migrationsClient,
+          schemaMigrationsTableClient,
+          configuration,
+          migrations,
+        ));
   } catch (error) {
     spinner.fail('no migrations were migrated due to an error');
 
@@ -75,7 +76,10 @@ export async function migrate(args: MigrateArgs): Promise<void> {
   }
 
   const finishTimestamp = Date.now();
-  const durationInSecondsString = makeDurationInSecondsString(startTimestamp, finishTimestamp);
+  const durationInSecondsString = makeDurationInSecondsString(
+    startTimestamp,
+    finishTimestamp,
+  );
 
   spinner.succeed(
     `migrated ${migrationsMigrated} migrations in ${durationInSecondsString} seconds`,
@@ -140,7 +144,10 @@ async function migrateMigration(
 
   const wasMigrated = await schemaMigrationsTableClient.doInTransaction(
     async (schemaMigrationsTableTransaction) => {
-      await lockMigrationsTable(schemaMigrationsTableTransaction, configuration);
+      await lockMigrationsTable(
+        schemaMigrationsTableTransaction,
+        configuration,
+      );
 
       const migratedMigrationIds = await getMigratedMigrationIds(
         schemaMigrationsTableTransaction,
@@ -152,13 +159,11 @@ async function migrateMigration(
       }
 
       try {
-        if (migration.disableTransaction) {
-          await migration.migrate(migrationsClient);
-        } else {
-          await migrationsClient.doInTransaction(async (transaction) => {
-            await migration.migrate(transaction);
-          });
-        }
+        await (migration.disableTransaction
+          ? migration.migrate(migrationsClient)
+          : migrationsClient.doInTransaction(async (transaction) => {
+              await migration.migrate(transaction);
+            }));
       } catch (error) {
         spinner.fail(`${redBright(migration.filename)} failed to migrate`);
 
@@ -176,11 +181,16 @@ async function migrateMigration(
   );
 
   const finishTimestamp = Date.now();
-  const durationInSecondsString = makeDurationInSecondsString(startTimestamp, finishTimestamp);
+  const durationInSecondsString = makeDurationInSecondsString(
+    startTimestamp,
+    finishTimestamp,
+  );
 
   if (wasMigrated) {
     spinner.succeed(
-      `${greenBright(migration.filename)} migrated in ${durationInSecondsString} seconds`,
+      `${greenBright(
+        migration.filename,
+      )} migrated in ${durationInSecondsString} seconds`,
     );
   }
 

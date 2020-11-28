@@ -19,6 +19,12 @@ export type PostreObject = {
   [postreSymbol]: true;
 };
 
-export type PrimitiveType = object | string | number | boolean | null;
+export type PrimitiveType =
+  | PrimitiveType[]
+  | { [key: string]: PrimitiveType }
+  | string
+  | number
+  | boolean
+  | null;
 
 export type LogicCondition = AndObject | OrObject | SqlObject | boolean | null;

@@ -1,6 +1,10 @@
 import * as pg from 'pg';
 
-import { BaseClient, StartTransactionOptions, TransactionFunction } from './BaseClient';
+import {
+  BaseClient,
+  StartTransactionOptions,
+  TransactionFunction,
+} from './BaseClient';
 import { Transaction } from './Transaction';
 import { doInTransaction, doStartTransaction } from './helpers';
 import { ClientConnectionOptions } from './types';
@@ -27,7 +31,9 @@ export class Client extends BaseClient {
     return this.pgClient;
   }
 
-  public async startTransaction(options?: StartTransactionOptions): Promise<Transaction<any>> {
+  public async startTransaction(
+    options?: StartTransactionOptions,
+  ): Promise<Transaction<any>> {
     if (options && options.client) {
       const { client, ...restOfOptions } = options;
 

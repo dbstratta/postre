@@ -21,7 +21,9 @@ export type TransactionConfig = {
   releaseWhenFinished: boolean;
 };
 
-export class Transaction<TClient extends Client | PoolClient> extends BaseClient {
+export class Transaction<
+  TClient extends Client | PoolClient
+> extends BaseClient {
   public config: TransactionConfig;
 
   public readonly client: TClient;
@@ -32,7 +34,9 @@ export class Transaction<TClient extends Client | PoolClient> extends BaseClient
     this.config = {
       isolationLevel: options.isolationLevel,
       releaseWhenFinished:
-        options.releaseWhenFinished === undefined ? true : options.releaseWhenFinished,
+        options.releaseWhenFinished === undefined
+          ? true
+          : options.releaseWhenFinished,
     };
 
     this.client = options.client;
@@ -42,7 +46,9 @@ export class Transaction<TClient extends Client | PoolClient> extends BaseClient
     return this.client.getPgClient();
   }
 
-  public async startTransaction(options: StartTransactionOptions = {}): Promise<Transaction<any>> {
+  public async startTransaction(
+    options: StartTransactionOptions = {},
+  ): Promise<Transaction<any>> {
     if (options && options.client) {
       const { client, ...restOfOptions } = options;
 
@@ -102,7 +108,9 @@ export class Transaction<TClient extends Client | PoolClient> extends BaseClient
    * for more information.
    */
   public async rollbackToSavepoint(savepointName: string): Promise<void> {
-    await this.query(sql`ROLLBACK TO SAVEPOINT ${sql.unsafeRaw(savepointName)}`);
+    await this.query(
+      sql`ROLLBACK TO SAVEPOINT ${sql.unsafeRaw(savepointName)}`,
+    );
   }
 
   /**
