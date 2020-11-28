@@ -38,7 +38,9 @@ export default [
   },
   {
     input: './src/bin.ts',
-    output: [{ file: pkg.bin, format: 'cjs', sourcemap: true, interop: false }],
+    output: [
+      { file: pkg.bin.postre, format: 'cjs', sourcemap: true, interop: false },
+    ],
     external: externalModules,
     plugins: [...commonPlugins, preserveShebangs()],
   },
